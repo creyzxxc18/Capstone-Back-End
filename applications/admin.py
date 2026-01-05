@@ -29,7 +29,6 @@ class CustomUserAdmin(UserAdmin):
     search_fields = ("email", "first_name", "last_name", "employId")
     ordering = ("email",)
 
-    
     fieldsets = (
         (None, {"fields": ("username", "email", "password", "employId")}),
         (
@@ -59,7 +58,6 @@ class CustomUserAdmin(UserAdmin):
         ("Firebase", {"fields": ("firebase_uid",), "classes": ("collapse",)}),
     )
 
-    
     add_fieldsets = (
         (
             None,
@@ -79,12 +77,11 @@ class CustomUserAdmin(UserAdmin):
     )
 
     def user_role(self, obj):
-        try:
-            if hasattr(obj, "profile"):
-                return obj.profile.userRole  
-            return "-"
-        except Profile.DoesNotExist:
-            return "No Profile"
+        
+        profile = getattr(obj, "profile", None)
+        if profile:
+            return profile.get_userRole_display()  
+        return "No Profile"
 
     user_role.short_description = "User Role"
 

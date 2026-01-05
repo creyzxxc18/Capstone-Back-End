@@ -5,7 +5,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 
 
-
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -89,24 +88,13 @@ class Course(models.Model):
         return f"{self.course_code}"
 
 
-
 @receiver(post_save, sender=CustomUser)
-def create_user_profile(sender, instance, created, **kwargs):
+def manage_user_profile(sender, instance, created, **kwargs):
     if created:
-        Profile.objects.create(user=instance)
-    else:
-        instance.profile.save()
-
-
-@receiver(post_save, sender=CustomUser)
-def save_user_profile(sender, instance, **kwargs):
-    if hasattr(instance, "profile"):
-        instance.profile.save()
+        
+        role = "admin" if instance.is_superuser else "staff/checker"
+        Profile.objects.create(user=instance, userRole=role)
     else:
         
-        if instance.is_superuser:
-            user_role = "admin"
-        else:
-            user_role = "staff/checker"
-
-        Profile.objects.create(user=instance, userRole=user_role)
+        if hasattr(instance, "profile"):
+            instance.profile.save()

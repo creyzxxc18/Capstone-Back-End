@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
-# Exit on error
+# exit on error
 set -o errexit
 
-# Install dependencies
 pip install -r requirements.txt
-
-# Collect static files (CSS/JS) into the staticfiles folder
 python manage.py collectstatic --no-input
-
-# Run migrations (Optional if using ONLY Firebase, 
-# but required if you use Django's built-in Admin/Users)
 python manage.py migrate
+
+# Add this line temporarily to create your admin
+python manage.py createsuperuser --no-input || true

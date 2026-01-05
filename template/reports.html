@@ -1,0 +1,82 @@
+{% extends "main_template.html" %}
+{%load static%}
+
+{% block title %} Reports and Analysis{% endblock %}
+{% block stylesheet %}
+<link rel="stylesheet" href="{% static 'css/reports.css' %}">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+{% endblock %}
+
+{% block maincontent %}
+
+<div class="reports-container">
+    <h2 class="report">Attendance Reports</h2>
+    <h5>{{ today }}</h5>
+
+    <div class="filter-container">
+        <div class="filter-row">
+            <div class="filter-group">
+                <label for="start-date">Start Date</label>
+                <input type="text" id="start-date" placeholder="Select start date">
+            </div>
+
+            <div class="filter-group">
+                <label for="end-date">End Date</label>
+                <input type="text" id="end-date" placeholder="Select end date">
+            </div>
+
+            <div class="filter-group">
+                <label for="department">Department</label>
+                <select name="department" id="department" class="department" onchange="generateReport()">
+                    <option value="all">All Departments</option>
+                    <option value="Basic Education">Basic Education</option>
+                    <option value="Information Technology">Information Technology</option>
+                    <option value="Criminology">Criminology</option>
+                    <option value="Business Administration">Business Administration</option>
+                    <option value="Tourism">Tourism Management</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="report-actions-row">
+            <div id="reportInfo" style="display: none;">
+                <strong>Report Period:</strong> <span id="reportPeriod"></span>
+            </div>
+
+            <button onclick="exportToPDF()" class="export-btn">
+                <span style="margin-right: 5px;">📄</span>EXPORT TO PDF
+            </button>
+        </div>
+    </div>
+
+    <div class="report-table-container">
+        <table id="reportTable" class="report-table">
+            <thead>
+                <tr>
+                    <th>Employee ID</th>
+                    <th>Name</th>
+                    <th>Department</th>
+                    <th>Present (%)</th>
+                    <th>Absent (%)</th>
+                    <th>Late (%)</th>
+                    <th>Total Hours</th>
+                    <th>Performance Analysis (PA)</th>
+                </tr>
+            </thead>
+            <tbody id="reportTableBody">
+                <tr>
+                    <td colspan="7" style="text-align: center; padding: 40px; color: #94a3b8;">
+                        Select a date range to view attendance data
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="{% static 'js/reports.js' %}"></script>
+
+{% endblock %}

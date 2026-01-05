@@ -1,0 +1,64 @@
+{% extends "staff/staff_template.html" %}
+{% load static %}
+{%load tz%}
+
+{% block title %} School Year {% endblock %}
+
+{% block stylesheet %}
+<link rel="stylesheet" href="{% static 'css/school-year.css' %}"> {% endblock %}
+
+{% block maincontents %}
+<div class="container">
+    <h2 class="container-title">Accounts</h2>
+    <p class="date-value">{% now "F Y" %}</p>
+    <!-- Filters -->
+    <div class="filters">
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search accounts..."
+                onkeyup="searchTable()">
+            <button class="search-btn" onclick="searchTable()">
+                <span class="material-symbols-outlined">search</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="access-table">
+    <table id="accessTable">
+        <thead>
+            <tr>
+                <th class="employID">EMPLOYEE ID</th>
+                <th class="user_name">NAME</th>
+                <th class="user-department">DEPARTMENT</th>
+                <th>ACCESS</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr data-user-id="{{user.id}}">
+                <td class="employID">{{user.employID}}</td>
+                <td class="user_name">{{user.full_name}}</td>
+                <td class="user-department">{{user.department}}</td>
+                <td>
+                    {% if user.isActive %}
+                    <button class="access-btn enabled" data-user-id="{{user.id}}" data-user-name="{{user.full_name}}"
+                        data-is-active="true">
+                        ENABLED
+                    </button>
+                    {%else%}
+                    <button class="access-btn disabled" data-user-id="{{user.id}}" data-user-name="{{user.full_name}}"
+                        data-is-active="false">
+                        DISABLED
+                    </button>
+                    {%endif%}
+                </td>
+            </tr>
+            {%endfor%}
+        </tbody>
+    </table>
+</div>
+
+</div>
+<script src="{% static 'js/school-year.js' %}"></script>
+{% endblock %}

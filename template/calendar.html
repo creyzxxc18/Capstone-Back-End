@@ -1,0 +1,92 @@
+{% extends "main_template.html" %}
+{%load static%}
+
+{% block title %} Faculty Attendance {% endblock %}
+{% block stylesheet %}
+<link rel="stylesheet" href="{% static 'css/calendar.css' %}"> {% endblock %}
+
+{% block maincontent %}
+
+<div class="calendar-container">
+    <div id="calendarData" data-year="{{ current_year }}" data-month="{{ current_month_number }}">
+    </div>
+    <div class="calendar-navigation">
+        <a href="?year={{ prev_year }}&month={{ prev_month }}">&laquo; Previous</a>
+        <span class="calendar-title">{{ current_month }} {{ current_year }}</span>
+        <a href="?year={{ next_year }}&month={{ next_month }}">Next &raquo;</a>
+    </div>
+
+    {{ calendar|safe }}
+
+    <div class="legend-section">
+        
+        <div class="legend-container">
+            <h2> Day Status</h2>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #9db5eb;"></div>
+                <span class="legend-label">Today</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #eff6ff;"></div>
+                <span class="legend-label">Future Date</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #e2e8f0;"></div>
+                <span class="legend-label">Past Date</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #11c7118b;"></div>
+                <span class="legend-label">Holiday</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-box" style="background: #ff6b6b;"></div>
+                <span class="legend-label">Suspended</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="faculty-list-container">
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search by date or professor name">
+
+        <div class="filter-dropdown-wrapper">
+            <button class="filter-btn" id="filterBtn">☰</button>
+            <div class="filter-dropdown" id="filterDropdown">
+                <div class="filter-section">
+                    <label class="filter-label">Sort By:</label>
+                    <label class="filter-option">
+                        <input type="radio" name="sort" value="latest" checked>
+                        <span>Latest</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="radio" name="sort" value="oldest">
+                        <span>Oldest</span>
+                    </label>
+                </div>
+                <div class="filter-divider"></div>
+                <div class="filter-section">
+                    <label class="filter-label">Show:</label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="timein" checked>
+                        <span>Time In</span>
+                    </label>
+                    <label class="filter-option">
+                        <input type="checkbox" name="timeout" checked>
+                        <span>Time Out</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="schedule-header">
+        <h3 id="scheduleDate">Select a date to view schedules</h3>
+        <p id="resultsCount"></p>
+    </div>
+
+    <div id="facultyScheduleList" class="faculty-cards"></div>
+</div>
+
+
+<script src="{% static 'js/calendar.js' %}"></script>
+{% endblock %}

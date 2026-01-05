@@ -1,0 +1,134 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Staff{% endblock %}</title>
+    <link href='https://cdn.boxicons.com/3.0.3/fonts/brands/boxicons-brands.min.css' rel='stylesheet'>
+    <link href='https://cdn.boxicons.com/3.0.3/fonts/basic/boxicons.min.css' rel='stylesheet'>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/template.css' %}">
+    {% block stylesheet %}{% endblock %}
+</head>
+
+<body>
+    <div class="header">
+        <div class="header-left">
+            <img src="{% static 'images/college-dept-logo-2.png' %}" alt="Logo">
+            <h2>CSCQC</h2>
+        </div>
+
+        <div class="header-right">
+            <div class="user-profile">
+                <div class="user-info">
+                    <span class="user-role">
+                        {% if user.is_authenticated %}
+                        {% if profile.userRole %}
+                        ({{ profile.userRole }})
+                        {% elif user.profile.userRole %}
+                        ({{ user.profile.userRole }})
+                        {% else %}
+                        (staff)
+                        {% endif %}
+                        {% endif %}
+                    </span>
+                    <span class="user-name">
+                        {% if user.is_authenticated %}
+                        {{ user.first_name }} {{ user.last_name }}
+                        {% endif %}
+                    </span>
+                </div>
+                <i class="fa-solid fa-circle-user"></i>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="top">
+            <a href="{% url 'staff_dashboard' %}"
+                class="{% if request.resolver_match.url_name == 'staff_dashboard' %}active{% endif %}">
+                <i class='bx  bx-dashboard'></i>
+                Dashboard
+            </a>
+            <a href="{% url 'staff_addsub' %}"
+                class="{% if request.resolver_match.url_name == 'staff_addsub' %}active{% endif %}">
+                <i class='bx  bx-plus'></i>
+                Adding Subject
+            </a>
+            <a href="{% url 'staff_scheduling' %}"
+                class="{% if request.resolver_match.url_name == 'staff_scheduling' %}active{% endif %}">
+                <i class='bx  bx-calendar-alt'></i>
+                Faculty Attendance
+            </a>
+            <a href="{% url 'staff_tertiaryfaculty' %}"
+                class="{% if request.resolver_match.url_name == 'staff_tertiaryfaculty' %}active{% endif %}">
+                <i class='bx  bx-user'></i>
+                Tertiary Faculties
+            </a>
+            <a href="{% url 'staff_school_year' %}"
+                class="{% if request.resolver_match.url_name == 'staff_schoolyear' %}active{% endif %}">
+                <i class='bx bx-calendar-event'></i>
+                School Year
+        </div>
+        <div class="bot">
+            <a href="" class="logout" onclick="event.preventDefault(); openLogoutModal();">
+                <i class='bx  bx-arrow-in-right-square-half'></i>
+                Logout</a>
+            <form id="logout-form" method="post" action="{% url 'logout' %}" style="display:none;">
+                {% csrf_token %}
+            </form>
+            <a href="{% url 'staff_home' %}">
+                <i class='bx  bx-home'></i>
+                Back to Home
+            </a>
+        </div>
+    </div>
+
+    <div id="logoutModal" class="logout-modal">
+        <div class="logout-modal-content">
+            <div class="logout-icon">
+                <i class="fas fa-sign-out-alt"></i>
+            </div>
+            <h3>Confirm Logout</h3>
+            <p>Are you sure you want to logout?</p>
+            <div class="logout-buttons">
+                <button onclick="closeLogoutModal()" class="btn-cancel">Cancel</button>
+                <button onclick="confirmLogout()" class="btn-logout">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="maincontainer">
+        <div class="container1" style="background: #2D3748;">
+            {% block maincontents %}
+
+            {% endblock %}
+        </div>
+    </div>
+
+    <script>
+        function openLogoutModal() {
+                document.getElementById('logoutModal').classList.add('show');
+            }
+
+            function closeLogoutModal() {
+                document.getElementById('logoutModal').classList.remove('show');
+            }
+
+            function confirmLogout() {
+                // Set session flag before logout
+                sessionStorage.setItem('loggedOut', 'true');
+                document.getElementById('logout-form').submit();
+            }
+    </script>
+</body>
+{% block script_content%}
+
+{% endblock %}
+</html>

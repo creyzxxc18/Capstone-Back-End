@@ -1,0 +1,84 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Homepage</title>
+  <link rel="stylesheet" href="{% static 'css/homepage.css' %}">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href='https://cdn.boxicons.com/3.0.3/fonts/brands/boxicons-brands.min.css' rel='stylesheet'>
+  <link href='https://cdn.boxicons.com/3.0.3/fonts/basic/boxicons.min.css' rel='stylesheet'>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+
+<div class="hero-wrapper">
+  <div class="header-section">
+    <div class="logo-title">
+      <img src="{% static 'images/college-dept-logo-2.png' %}" alt="Logo" />
+      <h2>CSCQC College Faculty</h2>
+    </div>
+    <div class="nav-link">
+      <ul>
+        <li><a href="{% url 'staff_dashboard' %}">Dashboard</a></li>
+        <li><a href="{% url 'staff_addsub' %}">Add Subject</a></li>
+        <li><a href="{% url 'staff_scheduling' %}">Faculty Scheduling</a></li>
+        <li><a href="{% url 'staff_tertiaryfaculty' %}">Tertiary Faculty</a></li>
+        <li><a href="{% url 'staff_school_year' %}">School Year</a></li>
+      </ul>
+    </div>
+    <button type="button" onclick="openLogoutModal()" class="logout-btn">LOGOUT</button>
+    <form id="logout-form" method="post" action="{% url 'logout' %}" style="display:none;">
+      {%csrf_token%}
+    </form>
+  </div>
+
+  <div class="header-content">
+    <div class="overlay"></div>
+    <div class="text-content">
+      <h1>Welcome, {{ first_name}} {{ last_name }} </h1>
+      <h3>
+        This platform guarantees data integrity and speed for every task you handle. From verifying daily logs to generating
+        comprehensive monthly reports. Manage attendance with effortless professionalism!
+      </h3>
+    </div>
+  </div>
+</div>
+
+<div id="logoutModal" class="logout-modal">
+  <div class="logout-modal-content">
+    <div class="logout-icon">
+      <i class="fas fa-sign-out-alt"></i>
+    </div>
+    <h3>Confirm Logout</h3>
+    <p>Are you sure you want to logout?</p>
+    <div class="logout-buttons">
+      <button onclick="closeLogoutModal()" class="btn-cancel">Cancel</button>
+      <button onclick="confirmLogout()" class="btn-logout">Logout</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openLogoutModal() {
+      document.getElementById('logoutModal').classList.add('show');
+    }
+
+    function closeLogoutModal() {
+      document.getElementById('logoutModal').classList.remove('show');
+    }
+
+    function confirmLogout() {
+      // Set session flag before logout
+      sessionStorage.setItem('loggedOut', 'true');
+      document.getElementById('logout-form').submit();
+    }
+</script>
+</body>
+
+</html>

@@ -1,0 +1,373 @@
+{% extends "staff/staff_template.html" %}
+{% load static %}
+
+{% block title %} Staff Adding Subject {% endblock %}
+
+{% block stylesheet %}
+<link rel="stylesheet" href="{% static 'css/semester.css' %}"> {% endblock %}
+
+{% block maincontents %}
+<div class="container">
+    <h2 class="table-header">Add Subject</h2>
+    <div class="accounts-header">
+        <div class="search-container">
+            <input type="text" class="search-input" id="searchInput" placeholder="Search accounts..."
+                onkeyup="searchTable()">
+            <button class="search-btn" onclick="searchTable()">
+                <span class="material-symbols-outlined">search</span>
+            </button>
+        </div>
+
+        <div class="btns">
+            <button class="import-btn" onclick="importAllTeachersExcel()">
+                Import Classes
+            </button>
+        
+            <button class="open-modal-btn" onclick="openModal()">Create QR Code</button>
+        </div>
+
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>Generate Classroom QR Code</h2>
+                <form id="qrForm">
+                    {% csrf_token %}
+                    <div class="input-group">
+                        <label for="qrText">Enter Room Code:</label>
+                        <input type="text" id="qrText" placeholder="M401" required>
+                    </div>
+                    <button type="submit" class="create-btn" id="createBtn">Create</button>
+                    <div id="message" class="message"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="table-container">
+        <table id="professorTable">
+            <thead>
+                <tr>
+                    <th>Employee ID</th>
+                    <th>Professor Name</th>
+                    <th>Department</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prof in professors %}
+                <tr>
+                    <td class="employ-id">{{prof.employID}}</td>
+                    <td class="user-name">{{ prof.full_name }}</td>
+                    <td class="user-department">{{ prof.department }}</td>
+                    <td>
+                        <button class="view-btn" onclick="viewClasses('{{ prof.id }}', '{{ prof.full_name }}')"><span
+                                class="material-symbols-outlined">
+                                visibility
+                            </span></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div id="classesSection" style="display:none; margin: 10px;">
+            <h2>Subjects of <span id="professorName"></span></h2>
+            <div style="margin: 10px;"></div>
+            <button class="back-btn" onclick="backToProfessorList()">← Back to Professors</button>
+            <div class="footer-actions">
+                <button class="delete-selected-btn" onclick="deleteSelected()">
+                    Delete Selected
+                </button>
+                <button class="add-btn" onclick="openAddClassModal()">Add Subject</button>
+            </div>
+
+            <table class="courseTable">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Course ID</th>
+                        <th>Course Subject</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="courseTableBody">
+                    <tr>
+                        <td colspan="3">No subjects found.</td>
+                    </tr>
+                </tbody>
+            </table>
+
+
+        </div>
+    </div>
+</div>
+
+
+<div id="addClassModal"
+    style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+    <div
+        style="background-color: white; margin: 5% auto; padding: 20px; width: 80%; max-width: 500px; border-radius: 8px;">
+        <h2>Add New Class</h2>
+
+        <form id="addClassForm" onsubmit="submitAddClass(event)">
+            <div style="margin-bottom: 15px;">
+                <label for="subjectCode">Course ID:</label>
+                <input type="text" id="subjectCode" name="subjectCode" placeholder="e.g., MATH101" required
+                    style="width: 100%; padding: 8px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="subjectName">Course Subject:</label>
+                <input type="text" id="subjectName" name="subjectName" placeholder="e.g., Calculus" required
+                    style="width: 100%; padding: 8px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="section">Section:</label>
+                <input type="text" id="section" name="section" placeholder="e.g., A, B, C" value="B"
+                    style="width: 100%; padding: 8px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="day">Day:</label>
+                <select id="day" name="day" required style="width: 100%; padding: 8px;">
+                    <option value="">Select Day</option>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                    <option value="Sunday">Sunday</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="startTime">Start Time:</label>
+                <input type="time" id="startTime" name="startTime" required style="width: 100%; padding: 8px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="endTime">End Time:</label>
+                <input type="time" id="endTime" name="endTime" required style="width: 100%; padding: 8px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="room">Room:</label>
+                <input type="text" id="room" name="room" placeholder="e.g., Room 306" required
+                    style="width: 100%; padding: 8px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="school-year">School Year (e.g. 2024-2025): </label>
+                <input type="text" id="school-year" name="school-year" placeholder="e.g., 2024-2025" pattern="\d{4}-\d{4}"
+                    title="Format: YYYY-YYYY (e.g., 2024-2025)" required style="width: 100%; padding: 8px;">
+            </div>
+            
+            <div style="margin-bottom: 15px;">
+                <label for="semester">Semester:</label>
+                <select id="semester" name="semester" required style="width: 100%; padding: 8px;">
+                    <option value="">-- Select Semester --</option>
+                    <option value="1st Semester">1st Semester</option>
+                    <option value="2nd Semester">2nd Semester</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" onclick="closeAddClassModal()"
+                    style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+                <button type="submit"
+                    style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer;">Add
+                    Class</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="editClassModal"
+    style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+    <div
+        style="background-color: white; margin: 5% auto; padding: 20px; width: 80%; max-width: 500px; border-radius: 8px;">
+        <h2>Edit Class</h2>
+
+        <form id="editClassForm" onsubmit="submitEditClass(event)">
+            <input type="hidden" id="editClassId" name="editClassId">
+
+            <div style="margin-bottom: 15px;">
+                <label for="editSubjectCode">Course ID:</label>
+                <input type="text" id="editSubjectCode" name="editSubjectCode" placeholder="e.g., MATH101" required
+                    style="width: 100%; padding: 8px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="editSubjectName">Course Subject:</label>
+                <input type="text" id="editSubjectName" name="editSubjectName" placeholder="e.g., Calculus" required
+                    style="width: 100%; padding: 8px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="editDay">Day:</label>
+                <select id="editDay" name="editDay" required style="width: 100%; padding: 8px;">
+                    <option value="">Select Day</option>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                    <option value="Sunday">Sunday</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="editStartTime">Start Time:</label>
+                <input type="time" id="editStartTime" name="editStartTime" required style="width: 100%; padding: 8px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="editEndTime">End Time:</label>
+                <input type="time" id="editEndTime" name="editEndTime" required style="width: 100%; padding: 8px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label for="editRoom">Room:</label>
+                <input type="text" id="editRoom" name="editRoom" placeholder="e.g., Room 306" required
+                    style="width: 100%; padding: 8px;">
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" onclick="closeEditClassModal()"
+                    style="padding: 10px 20px; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
+                <button type="submit"
+                    style="padding: 10px 20px; background: #2563eb; color: white; border: none; border-radius: 4px; cursor: pointer;">Update
+                    Class</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="{% static 'js/staff_addsub.js' %}"></script>
+{%block script_content%}
+<script>
+    const modal = document.getElementById('myModal');
+    const qrForm = document.getElementById('qrForm');
+    const qrTextInput = document.getElementById('qrText');
+    const createBtn = document.getElementById('createBtn');
+    const messageDiv = document.getElementById('message');
+
+    function openModal() {
+        modal.style.display = 'block';
+        qrTextInput.value = '';
+        messageDiv.style.display = 'none';
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            closeModal();
+        }
+    }
+
+    qrForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+            
+        const text = qrTextInput.value.trim();
+            
+        if (!text) {
+            showMessage('Please enter some text or URL', 'error');
+            return;
+        }
+
+        createBtn.disabled = true;
+        createBtn.textContent = 'Creating...';
+
+        try {
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            const response = await fetch('/semester/create_qr_code/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,  
+                },
+                body: JSON.stringify({ text: text })
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'qrcode.png';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                    
+                showMessage('QR Code generated successfully!', 'success');
+                setTimeout(() => {
+                    closeModal();
+                }, 1500);
+            } else {
+                const errorData = await response.json();
+                showMessage('Error: ' + (errorData.error || 'Failed to generate QR code'), 'error');
+                console.error('Server error:', errorData);
+            }
+        } catch (error) {
+            console.error('Full error:', error);
+            showMessage('Connection error. Check if server is running.', 'error');
+        } finally {
+            createBtn.disabled = false;
+            createBtn.textContent = 'Create';
+        }
+    });
+
+    function showMessage(text, type) {
+        messageDiv.textContent = text;
+        messageDiv.className = 'message ' + type;
+        messageDiv.style.display = 'block';
+    }
+
+    function calculateSchoolYear() {
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth() + 1; 
+
+        let schoolYear;
+
+        if (currentMonth >= 2 && currentMonth <= 7) {
+            schoolYear = `${currentYear - 1}-${currentYear}`;
+        } else {
+            schoolYear = `${currentYear}-${currentYear + 1}`;
+        }
+
+        return schoolYear;
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('school-year').value = calculateSchoolYear();
+    });
+    document.getElementById('semester').addEventListener('change', function () {
+        const semester = this.value;
+        const schoolYearInput = document.getElementById('school-year');
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth() + 1;
+
+        if (semester === '1st Semester') {
+            if (currentMonth >= 7) {
+                schoolYearInput.value = `${currentYear}-${currentYear + 1}`;
+            } else {
+                schoolYearInput.value = `${currentYear - 1}-${currentYear}`;
+            }
+        } else if (semester === '2nd Semester') {
+            if (currentMonth >= 1 && currentMonth <= 6) {
+                schoolYearInput.value = `${currentYear - 1}-${currentYear}`;
+            } else {
+                schoolYearInput.value = `${currentYear}-${currentYear + 1}`;
+            }
+        }
+    });
+</script>
+{%endblock%}
+{% endblock %}

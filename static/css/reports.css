@@ -1,0 +1,630 @@
+.reports-container {
+  margin: 10px;
+  text-align: center;
+  padding: 10px 20px 20px 20px;
+}
+
+.reports-container h2.report {
+  color: #edf2f7;
+  padding: 5px 10px 0px 10px;
+  font-size: 30px;
+  margin-top: 0;
+}
+
+.reports-container h5 {
+  color: #edf2f7;
+  padding-left: 10px;
+  margin-top: -15px;
+  font-size: 20px;
+  font-weight: 200;
+}
+
+.filter-container {
+  font-size: 15px;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 20px;
+  margin-top: 15px;
+}
+
+.filter-row {
+  display: flex;
+  gap: 20px;
+  padding: 0 30px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.filter-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 200px;
+}
+
+label {
+  margin-bottom: 8px;
+  color: #1e293b;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+input,
+select {
+  padding: 12px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 15px;
+  width: 100%;
+  height: 48px;
+  box-sizing: border-box;
+  background: #ffffff;
+  color: #1e293b;
+}
+
+select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231e293b' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+/* Date inputs */
+#start-date,
+#end-date {
+  background: #ffffff;
+  color: #1e293b;
+  border: 2px solid #e2e8f0;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s;
+  height: 48px;
+  line-height: 1.5;
+}
+
+#start-date:hover,
+#end-date:hover {
+  border-color: #cbd5e0;
+}
+
+#start-date:focus,
+#end-date:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Style the visible date input (alternative input) */
+.flatpickr-input[readonly] {
+  background: #ffffff;
+  color: #1e293b;
+  border: 2px solid #e2e8f0;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s;
+  height: 48px;
+  line-height: 1.5;
+}
+
+.flatpickr-input[readonly]:hover {
+  border-color: #cbd5e0;
+}
+
+.flatpickr-input[readonly]:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Report Actions Row - contains Report Period and Export Button */
+.report-actions-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding: 0 30px;
+  gap: 20px;
+}
+
+.export-btn {
+  background: #dc2626;
+  /* Red color for PDF */
+  color: white;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 200px;
+}
+
+.export-btn:hover {
+  background: #b91c1c;
+}
+
+.report-table-container {
+  margin-top: 30px;
+  overflow-x: auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.report-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.report-table thead {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: white;
+}
+
+.report-table th {
+  padding: 15px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.report-table tbody tr {
+  border-bottom: 1px solid #e2e8f0;
+  transition: background 0.2s;
+}
+
+.report-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.report-table td {
+  padding: 15px;
+  font-size: 14px;
+  color: #1e293b;
+  text-align: center;
+}
+
+/* Report Period - aligned with export button */
+#reportInfo {
+  padding: 0 16px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border-left: 4px solid #2563eb;
+  color: #1e293b;
+  font-size: 14px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  white-space: nowrap;
+  margin: 0;
+}
+
+#reportInfo strong {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+/* Flatpickr WHITE theme customization */
+.flatpickr-calendar {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.flatpickr-months {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.flatpickr-current-month {
+  color: #1e293b !important;
+}
+
+.flatpickr-month {
+  color: #1e293b !important;
+}
+
+.flatpickr-prev-month,
+.flatpickr-next-month {
+  fill: #1e293b !important;
+}
+
+.flatpickr-weekdays {
+  background: #f8fafc !important;
+}
+
+.flatpickr-weekday {
+  color: #64748b !important;
+  font-weight: 600 !important;
+}
+
+.flatpickr-day {
+  color: #1e293b !important;
+}
+
+.flatpickr-day:hover {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+}
+
+.flatpickr-day.today {
+  background: #2563eb !important;
+  color: #ffffff !important;
+  border-color: #2563eb !important;
+  font-weight: 600 !important;
+}
+
+.flatpickr-day.selected {
+  background: #2563eb !important;
+  border-color: #2563eb !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+.flatpickr-day.prevMonthDay,
+.flatpickr-day.nextMonthDay {
+  color: #cbd5e0 !important;
+}
+
+.flatpickr-day.disabled {
+  color: #cbd5e0 !important;
+}
+
+.flatpickr-input[readonly] {
+  background: #ffffff;
+  color: #1e293b;
+  border: 2px solid #e2e8f0;
+  padding: 12px 14px;
+  font-size: 15px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s;
+  height: 48px;
+  line-height: 1.5;
+}
+
+.flatpickr-input[readonly]:hover {
+  border-color: #cbd5e0;
+}
+
+.flatpickr-input[readonly]:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+tr.expanded {
+  background: #eff6ff !important;
+}
+
+.detail-row {
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Clickable row hint */
+.report-table tbody tr:not(.detail-row) {
+  cursor: pointer;
+  position: relative;
+}
+
+.report-table tbody tr:not(.detail-row)::after {
+  content: "▼";
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #cbd5e0;
+  font-size: 10px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.report-table tbody tr:not(.detail-row):hover::after {
+  opacity: 1;
+}
+
+.report-table tbody tr.expanded::after {
+  content: "▲";
+  opacity: 1;
+  color: #2563eb;
+}
+
+@media screen and (max-width: 767px) {
+  .reports-container {
+    margin: 5px;
+    padding: 10px;
+  }
+
+  .reports-container h2.report {
+    font-size: 24px;
+    padding: 5px;
+  }
+
+  .reports-container h5 {
+    font-size: 16px;
+    margin-top: -10px;
+  }
+
+  .filter-container {
+    padding: 15px;
+  }
+
+  .filter-row {
+    flex-direction: column;
+    padding: 0;
+    gap: 15px;
+  }
+
+  .filter-group {
+    min-width: 100%;
+    width: 100%;
+  }
+
+  label {
+    font-size: 13px;
+  }
+
+  input,
+  select {
+    font-size: 14px;
+    padding: 10px 12px;
+    height: 44px;
+  }
+
+  select {
+    background-position: right 10px center;
+    padding-right: 32px;
+  }
+
+  #start-date,
+  #end-date,
+  .flatpickr-input[readonly] {
+    font-size: 14px;
+    padding: 10px 12px;
+    height: 44px;
+  }
+
+  .report-actions-row {
+    flex-direction: column;
+    padding: 0 15px;
+    gap: 15px;
+    align-items: stretch;
+  }
+
+  #reportInfo {
+    width: 100%;
+    height: auto;
+    min-height: 44px;
+    padding: 12px 16px;
+    white-space: normal;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .export-btn {
+    width: 100%;
+    min-width: unset;
+    height: 44px;
+  }
+
+  .report-table-container {
+    margin-top: 20px;
+    border-radius: 6px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .report-table {
+    min-width: 600px;
+  }
+
+  .report-table th,
+  .report-table td {
+    padding: 10px 8px;
+    font-size: 12px;
+  }
+
+  .report-table th {
+    white-space: nowrap;
+  }
+
+  /* Make arrow indicators always visible on mobile */
+  .report-table tbody tr:not(.detail-row)::after {
+    opacity: 1;
+    right: 8px;
+  }
+}
+
+/* Small Mobile (320px - 479px) */
+@media screen and (max-width: 479px) {
+  .reports-container {
+    margin: 0;
+    padding: 8px;
+  }
+
+  .reports-container h2.report {
+    font-size: 20px;
+    padding: 5px;
+  }
+
+  .reports-container h5 {
+    font-size: 14px;
+    padding-left: 5px;
+  }
+
+  .filter-container {
+    padding: 12px;
+    border-radius: 6px;
+  }
+
+  .filter-row {
+    gap: 12px;
+  }
+
+  label {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+
+  input,
+  select {
+    font-size: 13px;
+    padding: 8px 10px;
+    height: 40px;
+  }
+
+  select {
+    background-position: right 8px center;
+    padding-right: 28px;
+  }
+
+  #start-date,
+  #end-date,
+  .flatpickr-input[readonly] {
+    font-size: 13px;
+    padding: 8px 10px;
+    height: 40px;
+  }
+
+  .report-actions-row {
+    padding: 0 12px;
+    gap: 12px;
+  }
+
+  #reportInfo {
+    font-size: 12px;
+    padding: 10px 12px;
+    min-height: 40px;
+  }
+
+  .export-btn {
+    height: 40px;
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+
+  .report-table-container {
+    margin-top: 15px;
+  }
+
+  .report-table {
+    min-width: 500px;
+  }
+
+  .report-table th,
+  .report-table td {
+    padding: 8px 6px;
+    font-size: 11px;
+  }
+
+  .report-table tbody tr:not(.detail-row)::after {
+    right: 6px;
+    font-size: 8px;
+  }
+
+  /* Adjust flatpickr calendar for small screens */
+  .flatpickr-calendar {
+    font-size: 13px !important;
+  }
+
+  .flatpickr-day {
+    height: 32px !important;
+    line-height: 32px !important;
+  }
+}
+
+/* Extra Small Mobile (Below 360px) */
+@media screen and (max-width: 359px) {
+  .reports-container h2.report {
+    font-size: 18px;
+  }
+
+  .reports-container h5 {
+    font-size: 13px;
+  }
+
+  .filter-container {
+    padding: 10px;
+  }
+
+  input,
+  select,
+  #start-date,
+  #end-date,
+  .flatpickr-input[readonly] {
+    font-size: 12px;
+    height: 38px;
+  }
+
+  .export-btn {
+    height: 38px;
+    font-size: 13px;
+  }
+
+  .report-table {
+    min-width: 450px;
+  }
+
+  .report-table th,
+  .report-table td {
+    padding: 6px 4px;
+    font-size: 10px;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media screen and (max-width: 767px) and (orientation: landscape) {
+  .reports-container h2.report {
+    font-size: 20px;
+  }
+
+  .reports-container h5 {
+    font-size: 14px;
+    margin-top: -8px;
+  }
+
+  .filter-container {
+    padding: 12px;
+  }
+
+  .report-actions-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  #reportInfo {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .export-btn {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 150px;
+  }
+}

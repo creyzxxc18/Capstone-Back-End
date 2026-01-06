@@ -458,14 +458,12 @@ class ChangePasswordView(View):
 
             user = request.user
 
-            
             if not user.check_password(current_password):
                 return JsonResponse(
                     {"success": False, "error": "Incorrect current password"},
                     status=400,
                 )
 
-            
             if user.check_password(new_password):
                 return JsonResponse(
                     {
@@ -501,12 +499,13 @@ class ChangePasswordView(View):
 @login_required
 def get_login_redirect(request):
     login_success = request.session.get("login_success", False)
+    user = request.user
 
-    if login_success:
+    if login_success and not user.isFirstLogin:
         redirect_to = request.session.get("redirect_to", "/dashboard/")
-        
         request.session.pop("login_success", None)
         request.session.pop("redirect_to", None)
         return JsonResponse({"redirect_to": redirect_to})
-    else:
-        return JsonResponse({"redirect_to": None})
+    
+    request.session.pop("login_success", None)
+    return JsonResponse({"redirect_to": None})

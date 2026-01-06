@@ -291,34 +291,28 @@
         });
     
         document.addEventListener('DOMContentLoaded', async function () {
-            try {
-                const response = await fetch('/get-login-redirect/', {
-                    method: 'GET',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
+                try {
+                    const response = await fetch('/get-login-redirect/', {
+                        method: 'GET',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
 
-                if (response.ok) {
-                    const data = await response.json();
-
-                    if (data.redirect_to) {
-                        // Show popup
-                        const popup = document.getElementById('loginSuccessPopup');
-                        if (popup) {
-                            popup.classList.add('show');
-
-                            // Redirect after 2 seconds
-                            setTimeout(() => {
-                                window.location.href = data.redirect_to;
-                            }, 2000);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.redirect_to && !data.redirect_to.includes('login')) {
+                            const popup = document.getElementById('loginSuccessPopup');
+                            if (popup) {
+                                popup.classList.add('show');
+                                setTimeout(() => {
+                                    window.location.href = data.redirect_to;
+                                }, 2000);
+                            }
                         }
                     }
+                } catch (error) {
+                    console.log('No redirect needed');
                 }
-            } catch (error) {
-                console.log('No redirect needed');
-            }
-        });
+            });
 
     document.addEventListener('DOMContentLoaded', function () {
             if (sessionStorage.getItem('loggedOut') === 'true') {

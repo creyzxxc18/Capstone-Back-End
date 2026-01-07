@@ -1,6 +1,9 @@
 const modal = document.getElementById("teacherModal");
 const table = document.getElementById("accountsTable").getElementsByTagName("tbody")[0];
 
+let isSubmittingUser = false;
+
+
 document.addEventListener('DOMContentLoaded', function () {
   const contactInput = document.getElementById('teacherContact');
   const editContactInput = document.getElementById('editTeacherContact');
@@ -41,13 +44,13 @@ if (employIDInput) {
   employIDInput.addEventListener("input", async function () {
     const employID = employIDInput.value.trim();
 
-    
+
     employIDInput.classList.remove("input-error");
     removeEmployIdErrorMessage();
 
     if (!employID || employID.length < 3) return;
 
-    
+
     if (userTypeSelect.value !== "TertiaryFaculty" && userTypeSelect.value !== "SystemUser") return;
 
     try {
@@ -172,7 +175,7 @@ function editProfessor(id, firstName, midName, lastName, email, phoneNumber, dep
     department, employmentStatus, employID, userType
   });
 
-  
+
   document.getElementById('editTeacherId').value = id || '';
   document.getElementById('editUserType').value = userType || '';
   document.getElementById('editTeacherFirst').value = firstName || '';
@@ -209,7 +212,7 @@ const editUserIdInput = document.getElementById("editTeacherId");
 if (editEmployIDInput) {
   editEmployIDInput.addEventListener("input", async function () {
     const employID = editEmployIDInput.value.trim();
-    const uid = editUserIdInput.value; 
+    const uid = editUserIdInput.value;
 
     editEmployIDInput.classList.remove("input-error");
     removeEditEmployIdError();
@@ -343,140 +346,137 @@ async function updateTeacher() {
     });
 }
 
+
 async function saveTeacher() {
-  const firstName = document.getElementById("teacherFirst").value;
-  const midName = document.getElementById("teacherMiddle").value;
-  const lastName = document.getElementById("teacherLast").value;
-  const email = document.getElementById("teacherEmail").value;
-  const phoneNumber = document.getElementById("teacherContact").value;
-  const department = document.getElementById("teacherDept").value;
-  const userType = document.getElementById("user-type").value;
-  const employID = document.getElementById("employID").value.trim();
-  const userRole = document.getElementById("userRole").value;
 
-  [firstNameInput, lastNameInput].forEach((input, index) => {
-    if (!input) return;
+  if (isSubmittingUser) return;
 
-    input.addEventListener("input", function () {
-      const errorId = `name-error-${index}`;
+  const addBtn = document.getElementById("addUserBtn");
+  isSubmittingUser = true;
 
-      if (this.value && !isValidName(this.value)) {
-        showInputError(
-          this,
-          "Only letters, spaces, hyphens, and apostrophes are allowed",
-          errorId
-        );
-      } else {
-        removeInputError(this, errorId);
+
+  addBtn.disabled = true;
+  addBtn.style.pointerEvents = "none";
+  addBtn.innerHTML = `
+    <span class="material-symbols-outlined spin">hourglass_empty</span>
+    Creating...
+  `;
+
+  try {
+    const firstName = document.getElementById("teacherFirst").value.trim();
+    const midName = document.getElementById("teacherMiddle").value.trim();
+    const lastName = document.getElementById("teacherLast").value.trim();
+    const email = document.getElementById("teacherEmail").value.trim();
+    const phoneNumber = document.getElementById("teacherContact").value.trim();
+    const department = document.getElementById("teacherDept").value;
+    const userType = document.getElementById("user-type").value;
+    const employID = document.getElementById("employID").value.trim();
+    const userRole = document.getElementById("userRole").value;
+
+
+
+    if (!userType) {
+      alert("Please select a user type");
+      resetAddUserButton();
+      return;
+    }
+
+    if (phoneNumber.length !== 11 || !/^[0-9]{11}$/.test(phoneNumber)) {
+      alert("Contact number must be exactly 11 numeric digits");
+      resetAddUserButton();
+      return;
+    }
+
+
+    if (document.querySelector(".input-error")) {
+      alert("Please fix the highlighted errors before submitting.");
+      resetAddUserButton();
+      return;
+    }
+
+
+
+    const requestBody = {
+      first_name: firstName,
+      midName: midName,
+      last_name: lastName,
+      email: email,
+      phoneNumber: phoneNumber,
+      department: department,
+      user_type: userType,
+      userRole: userRole,
+      employID: employID,
+    };
+
+
+    if (userType === "TertiaryFaculty") {
+      const employmentStatus = document.getElementById("employmentStatus").value;
+
+      if (!employmentStatus) {
+        alert("Employment Status is required for Tertiary Faculty");
+        resetAddUserButton();
+        return;
       }
+
+      if (!employID) {
+        alert("Employee ID is required for Tertiary Faculty");
+        resetAddUserButton();
+        return;
+      }
+
+      requestBody.employmentStatus = employmentStatus;
+      requestBody.password = "cscqcApp123";
+    }
+
+
+
+    const response = await fetch("/accounts/register/", {
+      method: "POST",
+      headers: {
+        "X-CSRFToken": getCookie("csrftoken"),
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(requestBody),
     });
-  });
 
-  if (!userType) {
-    alert("Please select a user type");
-    return;
-  }
+    const data = await response.json();
 
-  if (phoneNumber.length !== 11 || !/^[0-9]{11}$/.test(phoneNumber)) {
-    alert("Contact number must be exactly 11 numeric digits");
-    return;
-  }
+    if (data.success) {
 
-  if (document.querySelector(".input-error")) {
-    alert("Please fix the highlighted errors before submitting.");
-    return;
-  }
+      addBtn.innerHTML = "✅ Created";
 
-  const requestBody = {
-    first_name: firstName,
-    midName: midName,
-    last_name: lastName,
-    email: email,
-    phoneNumber: phoneNumber,
-    department: department,
-    user_type: userType,
-    userRole: userRole,
-    employID: employID,
-  };
+      alert(
+        `${userType === "SystemUser" ? "System User" : "Tertiary Faculty"} added successfully!`
+      );
 
-  if (employID) {
-    try {
-      const url = `/accounts/check-employid/?employID=${encodeURIComponent(employID)}`;
-      const checkResponse = await fetch(url, {
-        method: "GET",
-        headers: {
-          "X-CSRFToken": getCookie("csrftoken"),
-        },
-      });
 
-      if (checkResponse.ok) {
-        const checkData = await checkResponse.json();
+      document.getElementById("teacherFirst").value = "";
+      document.getElementById("teacherMiddle").value = "";
+      document.getElementById("teacherLast").value = "";
+      document.getElementById("teacherEmail").value = "";
+      document.getElementById("teacherContact").value = "";
+      document.getElementById("teacherDept").value = "";
+      document.getElementById("employmentStatus").value = "";
+      document.getElementById("employID").value = "";
+      document.getElementById("user-type").value = "";
 
-        if (checkData.exists) {
-          alert("⚠️ This Employee ID already exists in system user or tertiary faculty.");
-          return; 
-        }
-      }
-    } catch (error) {
-      console.error("Error validating employID:", error);
-    }
-  }
 
-  if (userType === "TertiaryFaculty") {
-    const employmentStatus = document.getElementById("employmentStatus").value;
-
-    if (!employmentStatus) {
-      alert("Employment Status is required for Tertiary Faculty");
-      return;
-    }
-
-    if (!employID) {
-      alert("Employee ID is required for Tertiary Faculty");
-      return;
-    }
-
-    requestBody.employmentStatus = employmentStatus;
-    requestBody.password = "cscqcApp123";
-  }
-
-  console.log("Submitting registration...");
-
-  fetch("/accounts/register/", {
-    method: "POST",
-    headers: {
-      "X-CSRFToken": getCookie("csrftoken"),
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(requestBody),
-  })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
+      setTimeout(() => {
         closeModal();
-
-        
-        document.getElementById("teacherFirst").value = "";
-        document.getElementById("teacherMiddle").value = "";
-        document.getElementById("teacherLast").value = "";
-        document.getElementById("teacherEmail").value = "";
-        document.getElementById("teacherContact").value = "";
-        document.getElementById("teacherDept").value = "";
-        document.getElementById("employmentStatus").value = "";
-        document.getElementById("employID").value = "";
-        document.getElementById("user-type").value = "";
-
-        alert(`${userType === "SystemUser" ? "System User" : "Tertiary Faculty"} added successfully!`);
         location.reload();
-      } else {
-        alert("Error adding user: " + (data.error || "Unknown error"));
-      }
-    })
-    .catch(error => {
-      console.error("Error:", error);
-      alert("Error adding user");
-    });
-}
+      }, 800);
 
+    } else {
+      alert("Error adding user: " + (data.error || "Unknown error"));
+      resetAddUserButton();
+    }
+
+  } catch (error) {
+    console.error("Error:", error);
+    alert("Error adding user");
+    resetAddUserButton();
+  }
+}
 
 
 async function deleteUser(professorId, buttonElement) {
@@ -599,21 +599,21 @@ function resetPassword(professorId, email, userType) {
     });
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
   const urlParams = new URLSearchParams(window.location.search);
   const userType = urlParams.get('user_type');
-  
+
   document.querySelectorAll('.filters-btn').forEach(btn => {
     btn.classList.remove('filter-active');
   });
-  
+
   document.querySelectorAll('.filters-btn').forEach(btn => {
     const btnUserType = btn.getAttribute('data-filter');
     if (btnUserType === userType) {
       btn.classList.add('filter-active');
     }
   });
-  
+
 
   if (!userType || userType === 'TertiaryFaculty') {
     document.querySelector('[data-filter="TertiaryFaculty"]').classList.add('filter-active');
@@ -657,7 +657,7 @@ function searchTable() {
     const email = userEmail ? (userEmail.textContent || userEmail.innerText).trim().toLowerCase() : "";
     const phoneNumber = userPhoneNumber ? (userPhoneNumber.textContent || userPhoneNumber.innerText).trim().toLowerCase() : "";
 
-    if (name.indexOf(filter) > -1 ) {
+    if (name.indexOf(filter) > -1) {
       row.style.display = '';
     } else if (id.indexOf(filter) > -1) {
       row.style.display = '';
@@ -679,8 +679,8 @@ function searchTable() {
 
 function filterByDepartment() {
   const departmentFilter = document.getElementById('departmentFilter').value.toLowerCase();
-  const tbody = document.querySelector('#accountsTable tbody');  
-  const rows = tbody.getElementsByTagName('tr');  
+  const tbody = document.querySelector('#accountsTable tbody');
+  const rows = tbody.getElementsByTagName('tr');
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
@@ -689,7 +689,7 @@ function filterByDepartment() {
       continue;
     }
 
-    const departmentCell = row.querySelector('.user-department');  
+    const departmentCell = row.querySelector('.user-department');
 
     if (departmentCell) {
       const department = departmentCell.textContent || departmentCell.innerText;
@@ -903,7 +903,7 @@ if (emailInput) {
 
     if (!email) return;
 
-    // Must contain "@"
+
     if (!email.includes("@")) {
       showEmailError("Email must contain '@'");
       emailInput.classList.add("input-error");
@@ -953,3 +953,12 @@ function removeEmailError() {
   if (error) error.remove();
 }
 
+function resetAddUserButton() {
+  const addBtn = document.getElementById("addUserBtn");
+  if (!addBtn) return;
+
+  isSubmittingUser = false;
+  addBtn.disabled = false;
+  addBtn.style.pointerEvents = "auto";
+  addBtn.innerHTML = "Add User";
+}

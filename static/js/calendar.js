@@ -847,6 +847,7 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
     }
 
     const isAbsent = (isPast || (isToday && classHasPassed)) && !hasTimeIn;
+    const isIncomplete = hasTimeIn && !hasTimeOut;
     const isPending = (isFuture || (isToday && !classHasPassed)) && !hasTimeIn && !hasTimeOut;
 
     console.log('   📊 Final Status:');
@@ -857,6 +858,7 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
     console.log('      - Has Time In?', hasTimeIn);
     console.log('      - Has Time Out?', hasTimeOut);
     console.log('      - IS ABSENT?', isAbsent);
+    console.log('      - IS INCOMPLETE?', isIncomplete);
     console.log('      - IS PENDING?', isPending);
 
     const isValidated = attendance?.remarks !== null && attendance?.remarks !== undefined;
@@ -990,7 +992,7 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
             <div class="attendance-section">
                 <div style="text-align: center; margin-bottom: 12px;">
                     <div style="
-                        background: ${isPending ? '#94a3b8' : isAbsent ? '#ef4444' : '#3b82f6'};
+                        background: ${isPending ? '#94a3b8' : isAbsent ? '#ef4444' : isIncomplete ? '#f59e0b' : '#3b82f6'};
                         color: white;
                         padding: 8px 16px;
                         border-radius: 6px;
@@ -1025,7 +1027,7 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
             <div class="attendance-section">
                 <div style="text-align: center; margin-bottom: 12px;">
                     <div style="
-                        background: ${isPending ? '#94a3b8' : isAbsent ? '#ef4444' : '#ef4444'};
+                        background: ${isPending ? '#94a3b8' : isAbsent ? '#ef4444' : isIncomplete ? '#f59e0b' : '#ef4444'};
                         color: white;
                         padding: 8px 16px;
                         border-radius: 6px;
@@ -1033,17 +1035,17 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
                         font-size: 14px;
                         display: inline-block;
                     ">
-                        Time Out: ${isPending ? '---' : isAbsent ? 'ABSENT' : timeOutActual}
+                        Time Out: ${isPending ? '---' : isAbsent ? 'ABSENT' : isIncomplete ? 'PENDING' : timeOutActual}
                     </div>
                 </div>
                 
                 <div class="image-container" style="
                     width: 100%;
                     height: 200px;
-                    border: 2px solid ${isPending ? '#cbd5e0' : isAbsent ? '#ef4444' : '#e2e8f0'};
+                    border: 2px solid ${isPending ? '#cbd5e0' : isAbsent ? '#ef4444' : isIncomplete ? '#fbbf24' : '#e2e8f0'};
                     border-radius: 8px;
                     overflow: hidden;
-                    background: ${isPending ? '#f1f5f9' : isAbsent ? '#fee2e2' : '#f8fafc'};
+                    background: ${isPending ? '#f1f5f9' : isAbsent ? '#fee2e2' : isIncomplete ? '#fef3c7' : '#f8fafc'};
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -1071,6 +1073,22 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
                         font-size: 14px;
                     ">
                         ${isToday ? 'Class in progress - waiting for completion' : 'Scheduled for future date'}
+                    </div>
+                </div>
+            ` : isIncomplete ? `
+                <!-- Incomplete Status Message -->
+                <div style="text-align: center;">
+                    <div style="
+                        display: inline-block;
+                        padding: 12px 24px;
+                        background: #fef3c7;
+                        border-radius: 6px;
+                        color: #92400e;
+                        font-weight: 600;
+                        font-size: 14px;
+                        border: 2px solid #fbbf24;
+                    ">
+                        ⏳ Waiting for Time Out - Teacher has timed in but not yet timed out
                     </div>
                 </div>
             ` : isAbsent && !lateReasons ? `
@@ -1234,9 +1252,10 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
                 font-weight: 600;
                 background: ${lateReasons ? '#fef3c7' :
             isAbsent ? (isCompensated ? '#d1fae5' : '#fee2e2') :
-                validationStatus === 'approved' ? '#d1fae5' :
-                    validationStatus === 'declined' ? '#fee2e2' :
-                        isPending ? '#fef3c7' : '#d1fae5'
+                isIncomplete ? '#fef3c7' :
+                    validationStatus === 'approved' ? '#d1fae5' :
+                        validationStatus === 'declined' ? '#fee2e2' :
+                            isPending ? '#fef3c7' : '#d1fae5'
         };
                 color: ${lateReasons ? '#92400e' :
             isAbsent ? (isCompensated ? '#065f46' : '#991b1b') :
@@ -1247,8 +1266,9 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
             ">
                 ${lateReasons ? lateReasons.toUpperCase() :
             isAbsent ? (isCompensated ? 'ABSENT (COMPENSATED)' : 'ABSENT') :
-                validationStatus ? validationStatus.toUpperCase() :
-                    isPending ? 'PENDING' : 'PRESENT'
+                isIncomplete ? 'INCOMPLETE - WAITING FOR TIME OUT' :
+                    validationStatus ? validationStatus.toUpperCase() :
+                        isPending ? 'PENDING' : 'PRESENT'
         }
             </span>
         </div>

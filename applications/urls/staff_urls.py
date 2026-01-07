@@ -10,7 +10,6 @@ urlpatterns = [
     path("staff_addsub/", views.staff_addsub_view, name="staff_addsub"),
     path("staff_scheduling/", views.staff_scheduling, name="staff_scheduling"),
     path("staff_tertiaryfaculty/", views.staff_tertiaryfaculty, name="staff_tertiaryfaculty"),
-    path("staff_schoolyear/", views.staff_school_year_view, name="staff_school_year"),
     
     #Staff Reset Password Url
     path("staff_tertiaryfaculty/accounts/accounts/reset-password/<str:pk>/", views.staff_reset_password,name="staff_reset_password",),
@@ -47,7 +46,4 @@ urlpatterns = [
     path('staff_scheduling/staff_scheduling/set_day_status/', schedule_views.set_day_status, name='set_day_status'),
     path('staff_scheduling/staff_scheduling/get_day_status/', schedule_views.get_day_status, name='get_day_status'),
     path('mark_compensated/', schedule_views.mark_compensated, name='mark_compensated'),
-    
-    path("schoolyear/", views.staff_school_year_view, name="staff_school_year_view"),
-    path("toggle_user_access/", views.toggle_user_access, name="toggle_user_access"),
 ]

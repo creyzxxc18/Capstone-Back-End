@@ -82,7 +82,7 @@ async function loadCalendarSchedules() {
     const todayDayName = today.toLocaleDateString('en-US', { weekday: 'long' });
     const todayYear = today.getFullYear();
     const todayMonth = today.getMonth() + 1;
-    
+
     if (todayYear === currentYear && todayMonth === currentMonth) {
         const todayCell = document.querySelector(`td[data-date="${todayStr}"]`);
         if (todayCell) {
@@ -90,7 +90,7 @@ async function loadCalendarSchedules() {
             todayCell.style.fontWeight = 'bold';
             todayCell.style.backgroundColor = '#9db5ebff';
         }
-        
+
         showDaySchedule(todayDayName, todayStr);
     }
 }
@@ -366,12 +366,12 @@ async function displayFilteredResults(teachers) {
         scheduleList.innerHTML = `<p style="text-align:center;color:#94a3b8;padding:20px;">No results found</p>`;
         if (resultsCount) resultsCount.textContent = 'No results';
 
-        
+
         if (selectedDate) {
             addDayStatusButtons(scheduleList);
         }
 
-        stopStatusAutoRefresh(); 
+        stopStatusAutoRefresh();
         return;
     }
 
@@ -380,18 +380,18 @@ async function displayFilteredResults(teachers) {
         resultsCount.textContent = `Showing ${teachers.length} teacher${teachers.length > 1 ? 's' : ''} with ${totalClasses} class${totalClasses > 1 ? 'es' : ''}`;
     }
 
-    
+
     for (const teacher of teachers) {
         const card = await createTeacherCard(teacher);
         scheduleList.appendChild(card);
     }
 
-    
+
     if (selectedDate) {
         addDayStatusButtons(scheduleList);
     }
 
-    
+
     startStatusAutoRefresh();
 }
 
@@ -560,7 +560,7 @@ function parseTimeToMinutes(timeStr) {
     if (!timeStr) return null;
 
     try {
-        
+
         const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
         if (!match) return null;
 
@@ -568,7 +568,7 @@ function parseTimeToMinutes(timeStr) {
         const minutes = parseInt(match[2]);
         const period = match[3].toUpperCase();
 
-        
+
         if (period === 'PM' && hours !== 12) {
             hours += 12;
         } else if (period === 'AM' && hours === 12) {
@@ -596,16 +596,16 @@ if (!document.getElementById('status-indicator-styles')) {
 }
 
 function startStatusAutoRefresh() {
-    
+
     if (statusRefreshInterval) {
         clearInterval(statusRefreshInterval);
     }
 
-    
+
     statusRefreshInterval = setInterval(() => {
         console.log('🔄 Auto-refreshing status indicators...');
         refreshAllStatusIndicators();
-    }, 30000); 
+    }, 30000);
 
     console.log('✅ Status auto-refresh started (every 30 seconds)');
 }
@@ -623,18 +623,18 @@ async function refreshAllStatusIndicators() {
         return;
     }
 
-    
+
     for (const teacher of currentProfessors) {
         await updateTeacherCardStatus(teacher.teacherUid, teacher.classes);
     }
 }
 
 async function updateTeacherCardStatus(teacherUid, classes) {
-    
+
     const cards = document.querySelectorAll('.professor-schedule-card');
 
     for (const card of cards) {
-        
+
         if (card.dataset.teacherUid !== teacherUid) {
             continue;
         }
@@ -644,10 +644,10 @@ async function updateTeacherCardStatus(teacherUid, classes) {
 
         if (!statusIndicator || !statusText) continue;
 
-        
+
         const status = await getTeacherAttendanceStatus(teacherUid, classes, selectedDate);
 
-        
+
         statusIndicator.style.background = status.color;
         statusIndicator.style.boxShadow = `0 0 8px ${status.color}`;
         statusIndicator.title = status.message;
@@ -658,7 +658,7 @@ async function updateTeacherCardStatus(teacherUid, classes) {
             statusIndicator.style.animation = 'none';
         }
 
-        
+
         statusText.textContent = status.message;
 
         console.log(`✅ Updated status for ${teacherUid}: ${status.message}`);
@@ -680,7 +680,7 @@ async function showTeacherScheduleModal(teacher) {
         document.body.appendChild(modal);
     }
 
-    
+
     let hasLeaveStatus = false;
     if (teacher.classes && teacher.classes.length > 0) {
         for (const cls of teacher.classes) {
@@ -1458,7 +1458,7 @@ async function clearAllClassesLeave(teacherUid) {
             const count = data.clearedCount || 0;
             alert(`✅ ${count} class(es) leave status cleared`);
 
-            
+
             closeTeacherScheduleModal();
             const teacher = currentProfessors.find(t => t.teacherUid === teacherUid);
             if (teacher) {
@@ -1507,10 +1507,10 @@ async function markAllClassesLeave(teacherUid, date) {
             const count = data.updatedCount || 0;
             alert(`✅ ${count} class(es) marked as ${leaveReason}`);
 
-            
+
             selectElement.value = '';
 
-            
+
             applyFilters();
         } else {
             alert('❌ Error: ' + data.error);
@@ -1554,7 +1554,7 @@ async function markAllClassesLeaveFromModal(teacherUid) {
             const count = data.updatedCount || 0;
             alert(`✅ ${count} class(es) marked as ${leaveReason}`);
 
-            
+
             closeTeacherScheduleModal();
             const teacher = currentProfessors.find(t => t.teacherUid === teacherUid);
             if (teacher) {
@@ -1583,7 +1583,7 @@ async function markTeacherLeave(attendanceId, classId, teacherUid, date) {
     }
 
     try {
-        
+
         if (!attendanceId) {
             const createResponse = await fetch('staff_scheduling/create_attendance/', {
                 method: 'POST',
@@ -1609,7 +1609,7 @@ async function markTeacherLeave(attendanceId, classId, teacherUid, date) {
             }
         }
 
-        
+
         const response = await fetch('staff_scheduling/mark_teacher_leave/', {
             method: 'POST',
             headers: {
@@ -1627,7 +1627,7 @@ async function markTeacherLeave(attendanceId, classId, teacherUid, date) {
         if (data.success) {
             alert(`✅ Teacher marked as ${leaveReason}`);
 
-            
+
             closeTeacherScheduleModal();
             const teacherName = document.getElementById('modalTeacherName')?.textContent;
             const teacher = currentProfessors.find(t => t.teacher_name === teacherName);
@@ -1670,7 +1670,7 @@ async function clearTeacherLeave(attendanceId) {
         if (data.success) {
             alert('✅ Leave status cleared');
 
-            
+
             closeTeacherScheduleModal();
             const teacherName = document.getElementById('modalTeacherName')?.textContent;
             const teacher = currentProfessors.find(t => t.teacher_name === teacherName);
@@ -1734,7 +1734,7 @@ async function validateAttendance(attendanceId, isApproved) {
         if (!confirm(`Are you sure you want to ${isApproved ? 'approve' : 'decline'} this attendance?`)) {
             return;
         }
-        
+
         const response1 = await fetch('staff_scheduling/validate_attendance/', {
             method: 'POST',
             headers: {
@@ -1753,7 +1753,7 @@ async function validateAttendance(attendanceId, isApproved) {
         if (data.success) {
             alert(`✅ Attendance ${isApproved ? 'approved' : 'declined'} successfully!`);
 
-            
+
             closeTeacherScheduleModal();
             const teacherName = document.getElementById('modalTeacherName')?.textContent;
             const teacher = currentProfessors.find(t => t.teacher_name === teacherName);
@@ -2047,40 +2047,79 @@ function applyStatusColors() {
     const today = new Date();
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
+    console.log('🎨 Applying status colors...');
+    console.log('   Today:', todayStr);
+    console.log('   Month statuses:', monthStatuses);
+
     calendarDays.forEach(td => {
         const dateStr = td.getAttribute('data-date');
         if (!dateStr) return;
 
-        
+
         td.style.backgroundColor = '';
-        td.style.color = '';  
+        td.style.color = '';
+        td.removeAttribute('data-status');
 
         const cellDate = new Date(dateStr + 'T00:00:00');
         const todayDate = new Date(todayStr + 'T00:00:00');
         const isPastDate = cellDate < todayDate;
+        const isTodayDate = dateStr === todayStr;
         const isFutureDate = cellDate > todayDate;
 
-        
+
         if (monthStatuses[dateStr]) {
             const status = monthStatuses[dateStr].status;
-            if (status === 'suspended') {
-                td.style.backgroundColor = '#ff6b6b';  
+
+            if (status === 'holiday') {
+                console.log(`   🎉 ${dateStr} = HOLIDAY`);
+                td.setAttribute('data-status', 'holiday');
+                td.style.backgroundColor = '#11c7118b';
                 td.style.color = 'black';
-            } else if (status === 'holiday') {
-                td.style.backgroundColor = '#11c7118b';  
-                td.style.color = 'black';
+                td.style.fontWeight = 'bold';
+
+
+                if (isTodayDate) {
+                    td.style.border = '2px solid #059669';
+                }
+                return;
             }
-        } else if (isPastDate) {
-            td.style.backgroundColor = '#e2e8f0';  
-            td.style.color = '#000000ff';
-        } else if (isFutureDate) {
-            td.style.backgroundColor = '#eff6ff';  
+            else if (status === 'suspended') {
+                console.log(`   ⚠️ ${dateStr} = SUSPENDED`);
+                td.setAttribute('data-status', 'suspended');
+                td.style.backgroundColor = '#ff6b6b';
+                td.style.color = 'black';
+                td.style.fontWeight = 'bold';
+
+
+                if (isTodayDate) {
+                    td.style.border = '2px solid #dc2626';
+                }
+                return;
+            }
+        }
+
+
+        if (isPastDate) {
+            console.log(`   📅 ${dateStr} = PAST`);
+            td.style.backgroundColor = '#e2e8f0';
             td.style.color = '#64748b';
-        } else {
-            
-            td.style.color = '#000000';
+            td.style.opacity = '0.6';
+        }
+        else if (isTodayDate) {
+            console.log(`   📍 ${dateStr} = TODAY`);
+            td.style.backgroundColor = '#9db5ebff';
+            td.style.color = 'black';
+            td.style.fontWeight = 'bold';
+            td.style.border = '2px solid #2563eb';
+        }
+        else if (isFutureDate) {
+            console.log(`   ⏭️ ${dateStr} = FUTURE`);
+            td.style.backgroundColor = '#eff6ff';
+            td.style.color = '#64748b';
         }
     });
+
+    console.log('✅ Status colors applied!');
 }
 
 function addDayStatusButtons(container) {
@@ -2089,7 +2128,7 @@ function addDayStatusButtons(container) {
         return;
     }
 
-    
+
     const existingButtons = document.getElementById('dayStatusButtons');
     if (existingButtons) {
         existingButtons.remove();
@@ -2108,11 +2147,11 @@ function addDayStatusButtons(container) {
         border-top: 2px solid #e2e8f0;
     `;
 
-    
+
     const currentStatus = monthStatuses[selectedDate];
 
     if (currentStatus) {
-        
+
         const clearBtn = document.createElement('button');
         clearBtn.textContent = `Clear ${currentStatus.status.toUpperCase()} Status`;
         clearBtn.style.cssText = `
@@ -2132,7 +2171,7 @@ function addDayStatusButtons(container) {
 
         buttonContainer.appendChild(clearBtn);
     } else {
-        
+
         const holidayBtn = document.createElement('button');
         holidayBtn.textContent = '🏖️ Mark as Holiday';
         holidayBtn.style.cssText = `
@@ -2171,7 +2210,7 @@ function addDayStatusButtons(container) {
         buttonContainer.appendChild(suspendBtn);
     }
 
-    
+
     try {
         container.appendChild(buttonContainer);
     } catch (error) {
@@ -2255,13 +2294,13 @@ async function clearDayStatus() {
         if (data.success) {
             alert('✅ Day status cleared');
 
-            
+
             delete monthStatuses[selectedDate];
 
-            
+
             applyStatusColors();
 
-            
+
             applyFilters();
         } else {
             alert('❌ Error: ' + data.error);

@@ -10,4 +10,3 @@ from .staff_dashboard import *
 from .staff_addsub import *
 from .staff_scheduling import *
 from .staff_tertiaryfaculty import *
-from .staff_schoolyear import *

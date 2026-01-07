@@ -9,7 +9,6 @@ from datetime import datetime, timedelta, timezone, date
 
 logger = logging.getLogger(__name__)
 
-
 class FirebaseService:
     def __init__(self):
         self.db = firestore.client()
@@ -138,9 +137,7 @@ class FirebaseService:
             if exclude_uid:
                 original_count = len(docs)
                 docs = [doc for doc in docs if doc.id != exclude_uid]
-                logger.info(
-                    f"   After excluding UID {exclude_uid}: {len(docs)} document(s)"
-                )
+                logger.info(f"   After excluding UID {exclude_uid}: {len(docs)} document(s)")
 
             exists = len(docs) > 0
 
@@ -154,7 +151,6 @@ class FirebaseService:
         except Exception as error:
             logger.error(f"Error checking employID: {str(error)}")
             import traceback
-
             logger.error(traceback.format_exc())
             return False
 
@@ -167,7 +163,6 @@ class FirebaseService:
 
             users_ref = self.db.collection("users")
             from google.cloud.firestore import FieldFilter
-
             query = users_ref.where(filter=FieldFilter("email", "==", email))
             docs = list(query.stream())
 
@@ -185,7 +180,6 @@ class FirebaseService:
         except Exception as error:
             logger.error(f"Error checking email: {str(error)}")
             import traceback
-
             logger.error(traceback.format_exc())
             return False
 
@@ -316,9 +310,7 @@ class FirebaseService:
 
         return start1_min < end2_min and start2_min < end1_min
 
-    def check_schedule_conflict(
-        self, teacher_uid, day, start_time, end_time, exclude_class_id=None
-    ):
+    def check_schedule_conflict(self, teacher_uid, day, start_time, end_time, exclude_class_id=None):
         try:
             logger.info("=" * 80)
             logger.info("🔍 CHECKING SCHEDULE CONFLICT")
@@ -373,7 +365,7 @@ class FirebaseService:
             import traceback
 
             logger.error(traceback.format_exc())
-            return {"has_conflict": False}
+            return {"has_conflict": False}  
 
     def bulk_create_classes(self, class_list):
         try:
@@ -387,21 +379,17 @@ class FirebaseService:
                     teacher_uid=class_data.get("teacherUid"),
                     day=class_data.get("day"),
                     start_time=class_data.get("startTime"),
-                    end_time=class_data.get("endTime"),
+                    end_time=class_data.get("endTime")
                 )
 
-                if conflict_check.get("has_conflict"):
-                    conflicting = conflict_check.get("conflicting_class")
-                    skipped_classes.append(
-                        {
-                            "subjectCode": class_data.get("subjectCode"),
-                            "subjectName": class_data.get("subjectName"),
-                            "reason": f"Conflicts with {conflicting['subjectCode']} at {conflicting['startTime']}-{conflicting['endTime']}",
-                        }
-                    )
-                    logger.warning(
-                        f"⚠️ Skipping {class_data.get('subjectCode')} due to conflict"
-                    )
+                if conflict_check.get('has_conflict'):
+                    conflicting = conflict_check.get('conflicting_class')
+                    skipped_classes.append({
+                        'subjectCode': class_data.get('subjectCode'),
+                        'subjectName': class_data.get('subjectName'),
+                        'reason': f"Conflicts with {conflicting['subjectCode']} at {conflicting['startTime']}-{conflicting['endTime']}"
+                    })
+                    logger.warning(f"⚠️ Skipping {class_data.get('subjectCode')} due to conflict")
                     continue
 
                 class_ref = self.db.collection("classes").document()
@@ -426,16 +414,14 @@ class FirebaseService:
 
             logger.info(f"✅ Bulk created {len(created_classes)} classes")
             if skipped_classes:
-                logger.warning(
-                    f"⚠️ Skipped {len(skipped_classes)} classes due to conflicts"
-                )
+                logger.warning(f"⚠️ Skipped {len(skipped_classes)} classes due to conflicts")
 
             return {
                 "success": True,
                 "count": len(created_classes),
                 "classes": created_classes,
                 "skipped": skipped_classes,
-                "skipped_count": len(skipped_classes),
+                "skipped_count": len(skipped_classes)
             }
 
         except Exception as e:
@@ -570,6 +556,7 @@ class FirebaseService:
 
             matching_records = []
 
+            
             target_date = self._normalize_date_string(date)
             logger.info(f"   🎯 Target date normalized to: {target_date}")
 
@@ -577,43 +564,46 @@ class FirebaseService:
                 data = doc.to_dict()
 
                 doc_class_id = data.get("classId", "")
-
+                
+                
                 doc_teacher_uid = data.get("teacherUid") or data.get("uid", "")
                 doc_date = data.get("date")
 
+                
                 class_match = doc_class_id == class_id
-
+                
+                
                 teacher_match = doc_teacher_uid == teacher_uid
 
+                
                 date_match = False
                 doc_date_str = None
 
                 if doc_date:
                     doc_date_str = self._normalize_date_string(doc_date)
-                    date_match = doc_date_str == target_date
-
+                    date_match = (doc_date_str == target_date)
+                    
                     if date_match:
-                        logger.info(
-                            f"   ✅ Date match found: {doc_date_str} == {target_date}"
-                        )
-
+                        logger.info(f"   ✅ Date match found: {doc_date_str} == {target_date}")
+                
+                
                 if class_match or teacher_match:
                     logger.info(
                         f"   🔍 Doc {doc.id[:8]}: "
                         f"Class={class_match}, Teacher={teacher_match}, Date={date_match}"
                     )
 
+                
                 if class_match and teacher_match and date_match:
                     normalized_data = {
                         "id": doc.id,
                         "classId": data.get("classId"),
-                        "teacherUid": doc_teacher_uid,
+                        "teacherUid": doc_teacher_uid,  
                         "date": data.get("date"),
                         "timeIn": data.get("timeIn"),
                         "timeOut": data.get("timeOut"),
                         "timeInActual": data.get("timeInActual") or data.get("timeIn"),
-                        "timeOutActual": data.get("timeOutActual")
-                        or data.get("timeOut"),
+                        "timeOutActual": data.get("timeOutActual") or data.get("timeOut"),
                         "timeInImageUrl": data.get("timeInImageUrl"),
                         "timeOutImageUrl": data.get("timeOutImageUrl"),
                         "timeInValidated": data.get("timeInValidated"),
@@ -635,9 +625,7 @@ class FirebaseService:
                     matching_records.append(normalized_data)
                     logger.info(f"   ✅ ✅ ✅ PERFECT MATCH FOUND: {doc.id}")
                     logger.info(f"   - Status: {normalized_data.get('status')}")
-                    logger.info(
-                        f"   - Validation Status: {normalized_data.get('validationStatus')}"
-                    )
+                    logger.info(f"   - Validation Status: {normalized_data.get('validationStatus')}")
                     logger.info(f"   - TimeIn: {normalized_data.get('timeIn')}")
                     logger.info(f"   - TimeOut: {normalized_data.get('timeOut')}")
                     logger.info(
@@ -657,12 +645,8 @@ class FirebaseService:
                 )
                 logger.warning("   Possible reasons:")
                 logger.warning("   1. Attendance not yet submitted from mobile app")
-                logger.warning(
-                    "   2. ClassID mismatch (check Firebase 'classes' collection)"
-                )
-                logger.warning(
-                    "   3. TeacherUID mismatch (check 'uid' vs 'teacherUid' field)"
-                )
+                logger.warning("   2. ClassID mismatch (check Firebase 'classes' collection)")
+                logger.warning("   3. TeacherUID mismatch (check 'uid' vs 'teacherUid' field)")
                 logger.warning("   4. Date format mismatch")
 
             logger.info("=" * 80)
@@ -671,54 +655,57 @@ class FirebaseService:
         except Exception as e:
             logger.error(f"❌ Error fetching attendance: {str(e)}")
             import traceback
-
             logger.error(traceback.format_exc())
             return None
 
     def _normalize_date_string(self, date_value):
         try:
             from datetime import datetime, timezone, timedelta
-
+            
+            
             if date_value is None:
                 return None
-
+            
+            
             if isinstance(date_value, str):
-
+                
                 if "T" in date_value:
                     date_value = date_value.split("T")[0]
                 elif " " in date_value:
                     date_value = date_value.split(" ")[0]
-
+                
+                
                 try:
                     datetime.strptime(date_value, "%Y-%m-%d")
                     return date_value
                 except ValueError:
                     logger.warning(f"Invalid date format: {date_value}")
                     return str(date_value)
-
+            
+            
             if hasattr(date_value, "date"):
-
-                local_tz = timezone(timedelta(hours=8))
-
+                
+                local_tz = timezone(timedelta(hours=8))  
+                
                 if date_value.tzinfo:
                     local_dt = date_value.astimezone(local_tz)
                 else:
                     local_dt = date_value
-
+                
                 return local_dt.date().strftime("%Y-%m-%d")
-
+            
+            
             if hasattr(date_value, "strftime"):
                 return date_value.strftime("%Y-%m-%d")
-
-            logger.warning(
-                f"Unknown date type: {type(date_value)}, value: {date_value}"
-            )
+            
+            
+            logger.warning(f"Unknown date type: {type(date_value)}, value: {date_value}")
             return str(date_value)
-
+            
         except Exception as e:
             logger.error(f"Error normalizing date: {str(e)}")
         return str(date_value)
-
+    
     def mark_teacher_leave(self, attendance_id, late_reasons):
         try:
             attendance_ref = self.db.collection("attendance").document(attendance_id)
@@ -924,7 +911,7 @@ class FirebaseService:
 
             existing_data = doc.to_dict()
             original_status = existing_data.get("status", "late")
-
+            
             logger.info("=" * 80)
             logger.info(f"🔍 BEFORE VALIDATION:")
             logger.info(f"   Attendance ID: {attendance_id}")
@@ -932,9 +919,10 @@ class FirebaseService:
             logger.info(f"   Validation: {'APPROVE' if is_approved else 'DECLINE'}")
 
             from datetime import datetime
-
             validated_at = datetime.now().isoformat()
 
+            
+            
             update_data = {
                 "timeInValidated": is_approved,
                 "timeOutValidated": is_approved,
@@ -942,124 +930,116 @@ class FirebaseService:
                 "validatedAt": SERVER_TIMESTAMP,
                 "isValidated": True,
                 "validationStatus": "approved" if is_approved else "declined",
-                "remarks": "approved" if is_approved else "declined",
+                "remarks": "approved" if is_approved else "declined",  
                 "lastUpdated": SERVER_TIMESTAMP,
             }
 
             logger.info(f"   Updating ONLY these fields: {list(update_data.keys())}")
             logger.info(f"   'status' field will NOT be touched")
-
+            
+            
             attendance_ref.update(update_data)
 
+            
             verify_doc = attendance_ref.get()
             verify_data = verify_doc.to_dict()
             final_status = verify_data.get("status")
-
+            
             logger.info(f"🔍 AFTER VALIDATION:")
             logger.info(f"   Status field: '{final_status}'")
             logger.info(f"   validationStatus: '{verify_data.get('validationStatus')}'")
-
+            
             if final_status != original_status:
-                logger.error(
-                    f"❌❌❌ ERROR: Status changed from '{original_status}' to '{final_status}'!"
-                )
+                logger.error(f"❌❌❌ ERROR: Status changed from '{original_status}' to '{final_status}'!")
             else:
                 logger.info(f"✅ SUCCESS: Status preserved as '{final_status}'")
-
+            
             logger.info("=" * 80)
-
+            
             return {
                 "attendance_id": attendance_id,
                 "validation_status": "approved" if is_approved else "declined",
                 "attendance_status": final_status,
                 "validated_by": validator_uid,
-                "validated_at": validated_at,
+                "validated_at": validated_at
             }
 
         except Exception as e:
             logger.error(f"❌ Error validating attendance: {str(e)}")
             import traceback
-
             logger.error(traceback.format_exc())
             raise e
+
 
     def fix_corrupted_attendance_records(self):
         try:
             logger.info("=" * 80)
             logger.info("🔧 FIXING CORRUPTED ATTENDANCE RECORDS")
-
+            
             attendance_ref = self.db.collection("attendance")
             all_docs = list(attendance_ref.stream())
-
+            
             logger.info(f"   Total records to check: {len(all_docs)}")
-
+            
             fixed_count = 0
             for doc in all_docs:
                 data = doc.to_dict()
                 status = data.get("status", "")
-
+                
+                
                 if status.lower() in ["approved", "declined"]:
                     logger.info(f"   Found corrupted record: {doc.id}")
                     logger.info(f"      Current status: '{status}'")
-
+                    
                     time_in = data.get("timeIn", "")
                     class_id = data.get("classId", "")
-
-                    correct_status = "late"
-
+                    
+                    correct_status = "late"  
+                    
+                    
                     if class_id and time_in:
                         try:
-                            class_doc = (
-                                self.db.collection("classes").document(class_id).get()
-                            )
+                            class_doc = self.db.collection("classes").document(class_id).get()
                             if class_doc.exists:
                                 class_info = class_doc.to_dict()
                                 scheduled_start = class_info.get("startTime")
-
+                                
                                 if scheduled_start:
-                                    scheduled_minutes = self._parse_time_to_minutes(
-                                        scheduled_start
-                                    )
-                                    actual_minutes = self._parse_time_to_minutes(
-                                        time_in
-                                    )
-
+                                    scheduled_minutes = self._parse_time_to_minutes(scheduled_start)
+                                    actual_minutes = self._parse_time_to_minutes(time_in)
+                                    
                                     if scheduled_minutes and actual_minutes:
                                         if actual_minutes <= (scheduled_minutes + 5):
                                             correct_status = "present"
                                         else:
                                             correct_status = "late"
                         except Exception as e:
-                            logger.warning(
-                                f"      Could not determine correct status: {str(e)}"
-                            )
-
+                            logger.warning(f"      Could not determine correct status: {str(e)}")
+                    
                     logger.info(f"      Setting status to: '{correct_status}'")
                     logger.info(f"      Moving '{status}' to validationStatus")
+                    
 
-                    doc.reference.update(
-                        {
-                            "status": correct_status,
-                            "validationStatus": status,
-                            "isValidated": True,
-                            "remarks": status,
-                        }
-                    )
-
+                    doc.reference.update({
+                        "status": correct_status,
+                        "validationStatus": status,
+                        "isValidated": True,
+                        "remarks": status,
+                    })
+                    
                     fixed_count += 1
-
+            
             logger.info(f"✅ Fixed {fixed_count} corrupted records")
             logger.info("=" * 80)
-
+            
             return fixed_count
-
+            
         except Exception as e:
             logger.error(f"❌ Error fixing records: {str(e)}")
             import traceback
-
             logger.error(traceback.format_exc())
             return 0
-
+    
     def get_daily_attendance(self, date, department=None):
         try:
             attendance_ref = self.db.collection("attendance")
@@ -1093,9 +1073,10 @@ class FirebaseService:
 
             attendance_ref = self.db.collection("attendance").document()
 
+            
             class_id = attendance_data.get("classId")
-            status = "present"
-
+            status = "present"  
+            
             if class_id:
                 try:
                     class_doc = self.db.collection("classes").document(class_id).get()
@@ -1103,31 +1084,27 @@ class FirebaseService:
                         class_info = class_doc.to_dict()
                         scheduled_start = class_info.get("startTime")
                         actual_time_in = attendance_data.get("timeIn")
-
+                        
                         logger.info(f"Scheduled Start: {scheduled_start}")
                         logger.info(f"Actual Time In: {actual_time_in}")
-
+                        
+                        
                         if scheduled_start and actual_time_in:
-                            scheduled_minutes = self._parse_time_to_minutes(
-                                scheduled_start
-                            )
+                            scheduled_minutes = self._parse_time_to_minutes(scheduled_start)
                             actual_minutes = self._parse_time_to_minutes(actual_time_in)
-
+                            
                             if scheduled_minutes and actual_minutes:
-
+                                
                                 if actual_minutes > (scheduled_minutes + 5):
                                     status = "late"
-                                    logger.info(
-                                        f"⚠️ Marked as LATE: {actual_minutes - scheduled_minutes} minutes after scheduled"
-                                    )
+                                    logger.info(f"⚠️ Marked as LATE: {actual_minutes - scheduled_minutes} minutes after scheduled")
                                 else:
                                     status = "present"
-                                    logger.info(
-                                        f"✅ Marked as PRESENT: On time or within 5 minutes"
-                                    )
+                                    logger.info(f"✅ Marked as PRESENT: On time or within 5 minutes")
                 except Exception as e:
                     logger.error(f"Error checking class schedule: {str(e)}")
 
+            
             if attendance_data.get("status"):
                 status = attendance_data.get("status")
                 logger.info(f"📱 Using status from mobile app: {status}")
@@ -1140,7 +1117,7 @@ class FirebaseService:
                 "timeOutImageUrl": attendance_data.get("timeOutImageUrl", ""),
                 "timeIn": attendance_data.get("timeIn", ""),
                 "timeOut": attendance_data.get("timeOut", ""),
-                "status": status,
+                "status": status,  
                 "lateReason": attendance_data.get("lateReason", ""),
                 "timeInValidated": None,
                 "timeOutValidated": None,
@@ -1169,7 +1146,6 @@ class FirebaseService:
         except Exception as e:
             logger.error(f"❌ Error creating attendance record: {str(e)}")
             import traceback
-
             logger.error(traceback.format_exc())
             raise e
 
@@ -1320,21 +1296,18 @@ class FirebaseService:
                 if date_match:
                     current_status = data.get("status", "")
                     if current_status in ["holiday", "suspended"]:
-
+                        
                         date_obj = datetime.strptime(date, "%Y-%m-%d").date()
                         today = datetime.now().date()
-
+                        
+                        
                         if date_obj < today:
                             new_status = "absent"
-                            logger.info(
-                                f"   📅 Date {date} is in the past - setting status to 'absent'"
-                            )
+                            logger.info(f"   📅 Date {date} is in the past - setting status to 'absent'")
                         else:
                             new_status = "pending"
-                            logger.info(
-                                f"   📅 Date {date} is today/future - setting status to 'pending'"
-                            )
-
+                            logger.info(f"   📅 Date {date} is today/future - setting status to 'pending'")
+                        
                         batch.update(
                             doc.reference,
                             {
@@ -1359,35 +1332,36 @@ class FirebaseService:
 
             logger.error(traceback.format_exc())
             raise e
-
+        
     def get_teacher_by_employee_id(self, employee_id):
         try:
-            teachers_ref = self.db.collection("users")
-            query = teachers_ref.where("employID", "==", employee_id).limit(1)
+            teachers_ref = self.db.collection('users')
+            query = teachers_ref.where('employID', '==', employee_id).limit(1)
             results = query.stream()
-
+            
             for doc in results:
                 teacher_data = doc.to_dict()
-                teacher_data["uid"] = doc.id
+                teacher_data['uid'] = doc.id
                 return teacher_data
-
+            
             return None
-
+            
         except Exception as e:
             logger.error(f"Error getting teacher by employee ID: {str(e)}")
-            return None
-
+            return None    
+        
     def toggle_user_active_status(self, uid, is_active):
         try:
             logger.info(f"🔄 Toggling isActive for user {uid} to {is_active}")
-
-            self.db.collection("users").document(uid).update(
-                {"isActive": is_active, "lastUpdated": SERVER_TIMESTAMP}
-            )
-
+            
+            self.db.collection('users').document(uid).update({
+                'isActive': is_active,
+                'lastUpdated': SERVER_TIMESTAMP
+            })
+            
             logger.info(f"✅ User {uid} isActive updated to {is_active}")
             return True
-
+            
         except Exception as e:
             logger.error(f"❌ Error toggling user active status: {str(e)}")
             raise e
@@ -1442,84 +1416,76 @@ class FirebaseService:
 
     def calculate_attendance_summary(self, start_date, end_date, department="all"):
         try:
-            logger.info(
-                f"Calculating attendance summary from {start_date} to {end_date}, department: {department}"
-            )
-
+            logger.info(f"Calculating attendance summary from {start_date} to {end_date}, department: {department}")
+            
             users = self.get_all_users()
-
+            
             if department != "all":
-                users = [
-                    u
-                    for u in users
-                    if u.get("department", "").lower() == department.lower()
-                ]
-
+                users = [u for u in users if u.get("department", "").lower() == department.lower()]
+            
             logger.info(f"Found {len(users)} users to process")
-
+            
             attendance_ref = self.db.collection("attendance")
             all_attendance = list(attendance_ref.stream())
-
+            
             logger.info(f"Found {len(all_attendance)} total attendance records")
-
+            
+            
             day_status_ref = self.db.collection("dayStatus")
             all_day_statuses = list(day_status_ref.stream())
-
+            
+            
             day_status_map = {}
             for doc in all_day_statuses:
                 date_str = doc.id
                 status_data = doc.to_dict()
                 day_status_map[date_str] = status_data.get("status", "")
-
-            logger.info(
-                f"Found {len(day_status_map)} special day statuses (holidays/suspended)"
-            )
-
+            
+            logger.info(f"Found {len(day_status_map)} special day statuses (holidays/suspended)")
+            
             start_dt = datetime.strptime(start_date, "%Y-%m-%d")
             end_dt = datetime.strptime(end_date, "%Y-%m-%d")
-
+            
             summary = []
-
+            
             for user in users:
                 user_id = user.get("uid") or user.get("id")
                 first_name = user.get("firstName", "")
                 mid_name = user.get("midName", "")
                 last_name = user.get("lastName", "")
-
-                middle_initial = (
-                    f" {mid_name[0]}." if mid_name and mid_name.strip() else ""
-                )
+                
+                middle_initial = f" {mid_name[0]}." if mid_name and mid_name.strip() else ""
                 full_name = f"{first_name}{middle_initial} {last_name}".strip()
-
+                
                 user_attendance = []
                 skipped_records = []
-
+                
                 for doc in all_attendance:
                     data = doc.to_dict()
-
+                    
                     record_teacher_uid = data.get("uid")
-
+                    
                     if not record_teacher_uid:
                         skipped_records.append(f"No UID field - Doc ID: {doc.id}")
                         continue
-
+                        
                     if record_teacher_uid != user_id:
                         continue
-
+                    
                     doc_date = data.get("date")
                     if not doc_date:
                         skipped_records.append(f"No date field - Doc ID: {doc.id}")
                         continue
-
+                    
                     try:
                         if hasattr(doc_date, "date"):
                             local_tz = timezone(timedelta(hours=8))
-
+                            
                             if doc_date.tzinfo:
                                 local_dt = doc_date.astimezone(local_tz)
                             else:
                                 local_dt = doc_date
-
+                            
                             doc_date_str = local_dt.date().strftime("%Y-%m-%d")
                         elif hasattr(doc_date, "strftime"):
                             doc_date_str = doc_date.strftime("%Y-%m-%d")
@@ -1529,85 +1495,67 @@ class FirebaseService:
                             else:
                                 doc_date_str = doc_date.split(" ")[0]
                         else:
-                            skipped_records.append(
-                                f"Unknown date type: {type(doc_date)} - Doc ID: {doc.id}"
-                            )
+                            skipped_records.append(f"Unknown date type: {type(doc_date)} - Doc ID: {doc.id}")
                             continue
-
+                        
                         doc_dt = datetime.strptime(doc_date_str, "%Y-%m-%d")
-
+                        
                         if start_dt <= doc_dt <= end_dt:
-                            logger.info(
-                                f"   ✔ Including attendance for {full_name}: Date={doc_date_str}, Status={data.get('status')}"
-                            )
-                            user_attendance.append(
-                                {
-                                    "date": doc_date_str,
-                                    "timeIn": data.get("timeIn"),
-                                    "timeOut": data.get("timeOut"),
-                                    "status": data.get("status", "pending"),
-                                    "isValidated": data.get("isValidated", False),
-                                    "validationStatus": data.get(
-                                        "validationStatus", ""
-                                    ),
-                                    "timeInImageUrl": data.get("timeInImageUrl"),
-                                    "timeOutImageUrl": data.get("timeOutImageUrl"),
-                                }
-                            )
+                            logger.info(f"   ✔ Including attendance for {full_name}: Date={doc_date_str}, Status={data.get('status')}")
+                            user_attendance.append({
+                                "date": doc_date_str,
+                                "timeIn": data.get("timeIn"),
+                                "timeOut": data.get("timeOut"),
+                                "status": data.get("status", "pending"),
+                                "isValidated": data.get("isValidated", False),
+                                "validationStatus": data.get("validationStatus", ""),
+                                "timeInImageUrl": data.get("timeInImageUrl"),
+                                "timeOutImageUrl": data.get("timeOutImageUrl"),
+                            })
                         else:
-                            skipped_records.append(
-                                f"Date out of range: {doc_date_str} not in {start_date} to {end_date}"
-                            )
-
+                            skipped_records.append(f"Date out of range: {doc_date_str} not in {start_date} to {end_date}")
+                            
                     except Exception as e:
-                        skipped_records.append(
-                            f"Error parsing date: {str(e)} - Doc ID: {doc.id}"
-                        )
-                        logger.warning(
-                            f"Error parsing date for record {doc.id}: {str(e)}"
-                        )
+                        skipped_records.append(f"Error parsing date: {str(e)} - Doc ID: {doc.id}")
+                        logger.warning(f"Error parsing date for record {doc.id}: {str(e)}")
                         continue
-
-                logger.info(
-                    f"   User {full_name} ({user_id}): Found {len(user_attendance)} attendance records"
-                )
+                
+                logger.info(f"   User {full_name} ({user_id}): Found {len(user_attendance)} attendance records")
                 if skipped_records and len(skipped_records) > 0:
                     logger.info(f"   Skipped {len(skipped_records)} records (first 3):")
                     for skip in skipped_records[:3]:
                         logger.info(f"     - {skip}")
-
+                
                 present_count = 0
                 absent_count = 0
                 late_count = 0
-                holiday_count = 0
-                suspended_count = 0
+                holiday_count = 0  
+                suspended_count = 0  
                 total_hours = 0.0
-
+                
                 attendance_by_date = {}
                 for att in user_attendance:
                     date = att["date"]
                     if date not in attendance_by_date:
                         attendance_by_date[date] = att
-
+                
                 for date_str, att in attendance_by_date.items():
                     status = att.get("status", "pending").lower()
-
+                    
+                    
                     day_status = day_status_map.get(date_str, "").lower()
-
+                    
                     if day_status == "holiday":
                         holiday_count += 1
-                        logger.info(
-                            f"   🎉 {full_name}: {date_str} is a HOLIDAY - not counting as absent"
-                        )
-                        continue
-
+                        logger.info(f"   🎉 {full_name}: {date_str} is a HOLIDAY - not counting as absent")
+                        continue  
+                    
                     if day_status == "suspended":
                         suspended_count += 1
-                        logger.info(
-                            f"   ⚠️ {full_name}: {date_str} is SUSPENDED - not counting as absent"
-                        )
-                        continue
-
+                        logger.info(f"   ⚠️ {full_name}: {date_str} is SUSPENDED - not counting as absent")
+                        continue  
+                    
+                    
                     if status == "present":
                         present_count += 1
                     elif status == "late":
@@ -1617,7 +1565,7 @@ class FirebaseService:
                     elif status == "pending":
                         has_time_in = att.get("timeIn") or att.get("timeInImageUrl")
                         has_time_out = att.get("timeOut") or att.get("timeOutImageUrl")
-
+                        
                         if has_time_in and has_time_out:
                             present_count += 1
                         elif has_time_in and not has_time_out:
@@ -1625,65 +1573,56 @@ class FirebaseService:
                         else:
                             if self._should_mark_absent(date_str, user_id):
                                 absent_count += 1
-                                logger.info(
-                                    f"   ⚠️ {full_name}: Marking {date_str} as ABSENT (pending but date passed)"
-                                )
-
+                                logger.info(f"   ⚠️ {full_name}: Marking {date_str} as ABSENT (pending but date passed)")
+                    
+                    
                     time_in = att.get("timeIn", "")
                     time_out = att.get("timeOut", "")
-
+                    
                     if time_in and time_out:
                         try:
                             time_in_minutes = self._parse_time_to_minutes(time_in)
                             time_out_minutes = self._parse_time_to_minutes(time_out)
-
-                            if (
-                                time_in_minutes is not None
-                                and time_out_minutes is not None
-                            ):
+                            
+                            if time_in_minutes is not None and time_out_minutes is not None:
                                 if time_out_minutes < time_in_minutes:
                                     time_out_minutes += 24 * 60
-
+                                
                                 hours = (time_out_minutes - time_in_minutes) / 60.0
-
+                                
                                 if hours >= 0:
                                     total_hours += hours
                         except Exception as e:
                             logger.warning(f"  Error calculating hours: {str(e)}")
-
-                total_classes_count = (
-                    len(attendance_by_date) - holiday_count - suspended_count
-                )
-
+                
+                
+                total_classes_count = len(attendance_by_date) - holiday_count - suspended_count
+                
+                
                 if total_classes_count > 0:
-                    present_percentage = round(
-                        (present_count / total_classes_count) * 100, 1
-                    )
-                    absent_percentage = round(
-                        (absent_count / total_classes_count) * 100, 1
-                    )
+                    present_percentage = round((present_count / total_classes_count) * 100, 1)
+                    absent_percentage = round((absent_count / total_classes_count) * 100, 1)
                     late_percentage = round((late_count / total_classes_count) * 100, 1)
                 else:
                     present_percentage = 0.0
                     absent_percentage = 0.0
                     late_percentage = 0.0
-
-                logger.info(
-                    f"User {full_name} FINAL: Present={present_count}, Late={late_count}, Absent={absent_count}, Holiday={holiday_count}, Suspended={suspended_count}, Total Working Days={total_classes_count}, Hours={total_hours}"
-                )
-
+                
+                logger.info(f"User {full_name} FINAL: Present={present_count}, Late={late_count}, Absent={absent_count}, Holiday={holiday_count}, Suspended={suspended_count}, Total Working Days={total_classes_count}, Hours={total_hours}")
+                
+                
                 attendance_pattern = []
                 all_dates = sorted(list(attendance_by_date.keys()))
-
+                
                 for date_str in all_dates:
-
+                    
                     day_status = day_status_map.get(date_str, "").lower()
                     if day_status in ["holiday", "suspended"]:
                         continue
-
+                    
                     att = attendance_by_date[date_str]
                     status = att.get("status", "pending").lower()
-
+                    
                     if status == "present":
                         attendance_pattern.append("present")
                     elif status == "late":
@@ -1693,74 +1632,65 @@ class FirebaseService:
                     elif status == "pending":
                         has_time_in = att.get("timeIn") or att.get("timeInImageUrl")
                         has_time_out = att.get("timeOut") or att.get("timeOutImageUrl")
-
+                        
                         if has_time_in and has_time_out:
                             attendance_pattern.append("present")
                         elif has_time_in and not has_time_out:
                             attendance_pattern.append("late")
                         else:
                             attendance_pattern.append("absent")
-
-                summary.append(
-                    {
-                        "employID": user.get("employID", ""),
-                        "uid": user_id,
-                        "full_name": full_name,
-                        "department": user.get("department", ""),
-                        "present_count": present_count,
-                        "absent_count": absent_count,
-                        "late_count": late_count,
-                        "holiday_count": holiday_count,
-                        "suspended_count": suspended_count,
-                        "total_classes": total_classes_count,
-                        "present_percentage": present_percentage,
-                        "absent_percentage": absent_percentage,
-                        "late_percentage": late_percentage,
-                        "total_hours": total_hours,
-                        "attendance_pattern": attendance_pattern,
-                    }
-                )
-
+                
+                summary.append({
+                    "employID": user.get("employID", ""),
+                    "uid": user_id,
+                    "full_name": full_name,
+                    "department": user.get("department", ""),
+                    "present_count": present_count,
+                    "absent_count": absent_count,
+                    "late_count": late_count,
+                    "holiday_count": holiday_count,  
+                    "suspended_count": suspended_count,  
+                    "total_classes": total_classes_count,  
+                    "present_percentage": present_percentage,
+                    "absent_percentage": absent_percentage,
+                    "late_percentage": late_percentage,
+                    "total_hours": total_hours,
+                    "attendance_pattern": attendance_pattern,
+                })
+            
             logger.info(f"Summary complete: {len(summary)} users processed")
             return summary
-
+            
         except Exception as e:
             logger.error(f"Error calculating attendance summary: {str(e)}")
             import traceback
-
             logger.error(traceback.format_exc())
             return []
-
+        
     def _should_mark_absent(self, date_str, teacher_uid):
         try:
             date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
             today = datetime.now().date()
-
+                        
             if date_obj >= today:
                 return False
-
+            
             date_weekday = datetime.strptime(date_str, "%Y-%m-%d").weekday()
-            day_names = [
-                "Monday",
-                "Tuesday",
-                "Wednesday",
-                "Thursday",
-                "Friday",
-                "Saturday",
-                "Sunday",
-            ]
+            day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
             day_name = day_names[date_weekday]
-
+            
+            
             classes = self.get_classes(teacherUid=teacher_uid)
-
+            
+            
             has_class_on_day = any(cls.get("day") == day_name for cls in classes)
-
+            
             return has_class_on_day
-
+            
         except Exception as e:
             logger.error(f"Error in _should_mark_absent: {str(e)}")
             return False
-
+    
     def _get_full_name(self, user):
         first_name = user.get("firstName", "")
         mid_name = user.get("midName", "")
@@ -1807,104 +1737,106 @@ class FirebaseService:
 
     def flag_user_for_password_reset(self, user_id):
         try:
-            user_ref = self.db.collection("users").document(user_id)
-
+            user_ref = self.db.collection('users').document(user_id)
+            
             if not user_ref.get().exists:
                 logger.warning(f"User {user_id} not found in Firestore")
                 return False
-
-            user_ref.update(
-                {
-                    "isFirstLogin": True,
-                    "passwordResetRequiredAt": firestore.SERVER_TIMESTAMP,
-                    "passwordResetBy": "django_admin",
-                    "lastUpdated": firestore.SERVER_TIMESTAMP,
-                }
-            )
-
+            
+            user_ref.update({
+                'isFirstLogin': True,
+                'passwordResetRequiredAt': firestore.SERVER_TIMESTAMP,
+                'passwordResetBy': 'django_admin',
+                'lastUpdated': firestore.SERVER_TIMESTAMP,
+            })
+            
             logger.info(f"✅ User {user_id} flagged for password reset")
             return True
-
+            
         except Exception as e:
             logger.error(f"❌ Error flagging user {user_id}: {str(e)}")
             return False
 
+
     def get_user_by_employee_id(self, employee_id):
         try:
-            users_ref = self.db.collection("users")
-            query = users_ref.where("employID", "==", employee_id).limit(1)
+            users_ref = self.db.collection('users')
+            query = users_ref.where('employID', '==', employee_id).limit(1)
             docs = query.stream()
-
+            
             for doc in docs:
-                return {"uid": doc.id, "data": doc.to_dict()}
-
+                return {
+                    'uid': doc.id,
+                    'data': doc.to_dict()
+                }
+            
             return None
-
+            
         except Exception as e:
             logger.error(f"Error getting user by employID {employee_id}: {str(e)}")
             return None
-
+        
     def bulk_create_users(self, user_list):
         created_users = []
         skipped_users = []
-
+        
         for user_data in user_list:
             try:
-
+                
                 try:
-                    existing_user = auth.get_user_by_email(user_data["email"])
-                    skipped_users.append(
-                        {"email": user_data["email"], "reason": "Email already exists"}
-                    )
+                    existing_user = auth.get_user_by_email(user_data['email'])
+                    skipped_users.append({
+                        'email': user_data['email'],
+                        'reason': 'Email already exists'
+                    })
                     continue
                 except auth.UserNotFoundError:
-                    pass
-
+                    pass  
+                
+                
                 firebase_user = auth.create_user(
-                    email=user_data["email"],
-                    password=user_data.get("password", "DefaultPass123!"),
+                    email=user_data['email'],
+                    password=user_data.get('password', 'DefaultPass123!'),  
                     display_name=f"{user_data['firstName']} {user_data['lastName']}",
                 )
-
+                
+                
                 user_profile = {
                     "uid": firebase_user.uid,
-                    "email": user_data["email"],
-                    "firstName": user_data["firstName"],
-                    "lastName": user_data["lastName"],
-                    "midName": user_data.get("midName", ""),
-                    "phoneNumber": user_data.get("phoneNumber", ""),
-                    "profileImageUrl": user_data.get("profileImageUrl", ""),
+                    "email": user_data['email'],
+                    "firstName": user_data['firstName'],
+                    "lastName": user_data['lastName'],
+                    "midName": user_data.get('midName', ''),
+                    "phoneNumber": user_data.get('phoneNumber', ''),
+                    "profileImageUrl": user_data.get('profileImageUrl', ''),
                     "createdAt": firestore.SERVER_TIMESTAMP,
                     "lastUpdated": firestore.SERVER_TIMESTAMP,
                     "isFirstLogin": True,
                     "isActive": True,
-                    "role": user_data.get("role", "user"),
-                    "department": user_data.get("department", "Tertiary"),
-                    "employmentStatus": user_data.get("employmentStatus", "Full-time"),
-                    "employID": user_data.get("employID", ""),
+                    "role": user_data.get('role', 'user'),
+                    "department": user_data.get('department', 'Tertiary'),
+                    "employmentStatus": user_data.get('employmentStatus', 'Full-time'),
+                    "employID": user_data.get('employID', ''),
                 }
-
-                self.db.collection("users").document(firebase_user.uid).set(
-                    user_profile
-                )
-
-                created_users.append(
-                    {
-                        "uid": firebase_user.uid,
-                        "email": user_data["email"],
-                        "name": f"{user_data['firstName']} {user_data['lastName']}",
-                    }
-                )
-
+                
+                self.db.collection("users").document(firebase_user.uid).set(user_profile)
+                
+                created_users.append({
+                    'uid': firebase_user.uid,
+                    'email': user_data['email'],
+                    'name': f"{user_data['firstName']} {user_data['lastName']}"
+                })
+                
             except Exception as e:
                 logger.error(f"Error creating user {user_data.get('email')}: {str(e)}")
-                skipped_users.append(
-                    {"email": user_data.get("email", "Unknown"), "reason": str(e)}
-                )
-
+                skipped_users.append({
+                    'email': user_data.get('email', 'Unknown'),
+                    'reason': str(e)
+                })
+        
         return {
-            "count": len(created_users),
-            "users": created_users,
-            "skipped": skipped_users,
-            "skipped_count": len(skipped_users),
+            'count': len(created_users),
+            'users': created_users,
+            'skipped': skipped_users,
+            'skipped_count': len(skipped_users)
         }

@@ -84,7 +84,6 @@ class CustomLoginRedirectView(LoginView):
         if request.method == "POST":
             username = request.POST.get("username", "")
 
-            
             lockout_key = f"lockout_{username}"
             attempts_key = f"attempts_{username}"
 
@@ -100,7 +99,7 @@ class CustomLoginRedirectView(LoginView):
                     )
                     return self.render_to_response(self.get_context_data())
                 else:
-                    
+
                     request.session.pop(lockout_key, None)
                     request.session.pop(attempts_key, None)
 
@@ -110,11 +109,10 @@ class CustomLoginRedirectView(LoginView):
         username = self.request.POST.get("username", "")
         attempts_key = f"attempts_{username}"
         lockout_key = f"lockout_{username}"
-        
+
         attempts = self.request.session.get(attempts_key, 0) + 1
         self.request.session[attempts_key] = attempts
 
-        
         if attempts >= 5:
             lockout_until = timezone.now() + timedelta(minutes=15)
             self.request.session[lockout_key] = lockout_until.isoformat()
@@ -131,14 +129,17 @@ class CustomLoginRedirectView(LoginView):
                 self.request,
                 f"⚠️Invalid email or password. {remaining_attempts} attempt(s) remaining.",
             )
-        return super().form_invalid(form)
+
+        form.data = {}
+        form.files = {}
+
+        return self.render_to_response(self.get_context_data(form=form))
 
     def form_valid(self, form):
         username = self.request.POST.get("username", "")
         attempts_key = f"attempts_{username}"
         lockout_key = f"lockout_{username}"
 
-        
         self.request.session.pop(attempts_key, None)
         self.request.session.pop(lockout_key, None)
 
@@ -158,14 +159,15 @@ class CustomLoginRedirectView(LoginView):
 
     def get_success_url(self):
         user = self.request.user
-        
+
         if user.isFirstLogin:
-            return reverse_lazy("login")  
-        
+            return reverse_lazy("login")
+
         if user.is_superuser:
             return reverse_lazy("dashboard")
         try:
             from applications.models import Profile
+
             role = Profile.objects.get(user=user).userRole.lower()
             if role == "admin":
                 return reverse_lazy("dashboard")
@@ -179,6 +181,7 @@ class CustomLoginRedirectView(LoginView):
 
         return reverse_lazy("staff_home")
 
+
 @login_required
 def redirect_after_login(request):
     user = request.user
@@ -186,6 +189,7 @@ def redirect_after_login(request):
         return redirect("dashboard")
     try:
         from applications.models import Profile
+
         role = Profile.objects.get(user=user).userRole.lower()
         if role == "admin":
             return redirect("dashboard")
@@ -383,7 +387,6 @@ class RequestPasswordResetView(View):
                     {"success": False, "error": "Email not found"}, status=404
                 )
 
-            
             reset_link = f"{settings.SITE_URL}/login/?reset_email={email}"
 
             send_mail(
@@ -414,7 +417,6 @@ class ResetPasswordView(View):
             User = get_user_model()
             user = User.objects.get(email=email)
 
-            
             if user.check_password(new_password):
                 return JsonResponse(
                     {
@@ -424,7 +426,6 @@ class ResetPasswordView(View):
                     status=400,
                 )
 
-            
             if len(new_password) < 8:
                 return JsonResponse(
                     {
@@ -506,6 +507,6 @@ def get_login_redirect(request):
         request.session.pop("login_success", None)
         request.session.pop("redirect_to", None)
         return JsonResponse({"redirect_to": redirect_to})
-    
+
     request.session.pop("login_success", None)
     return JsonResponse({"redirect_to": None})

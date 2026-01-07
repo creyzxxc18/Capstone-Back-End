@@ -119,6 +119,8 @@ function toggleRowDetails(tr, row) {
     const presentDays = row.present_count;
     const absentDays = row.absent_count;
     const lateDays = row.late_count;
+    const holidayDays = row.holiday_count || 0;
+    const suspendedDays = row.suspended_count || 0;
 
     const detailRow = document.createElement('tr');
     detailRow.id = detailRowId;
@@ -170,6 +172,12 @@ function toggleRowDetails(tr, row) {
                         <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Total Late</div>
                         <div style="font-size: 32px; font-weight: bold;">${lateDays}</div>
                         <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">days</div>
+                    </div>
+
+                    <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); padding: 20px; border-radius: 12px; color: white; box-shadow: 0 4px 6px rgba(139, 92, 246, 0.3);">
+                        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 8px;">Non-Working Days</div>
+                        <div style="font-size: 32px; font-weight: bold;">${holidayDays + suspendedDays}</div>
+                        <div style="font-size: 12px; opacity: 0.8; margin-top: 4px;">${holidayDays} holidays + ${suspendedDays} suspended</div>
                     </div>
                     
                     <div style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); padding: 20px; border-radius: 12px; color: white; box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3);">
@@ -509,7 +517,7 @@ async function exportSingleProfessorToPDF(row) {
 
         const historyResponse = await fetch(historyUrl);
 
-        
+
         if (!historyResponse.ok) {
             throw new Error(`HTTP ${historyResponse.status}: ${historyResponse.statusText}`);
         }
@@ -523,13 +531,13 @@ async function exportSingleProfessorToPDF(row) {
             console.log('✅ Attendance history loaded:', attendanceHistory.length, 'records');
         } else {
             console.error('❌ History fetch failed:', historyData.error || 'No data returned');
-            attendanceHistory = []; 
+            attendanceHistory = [];
         }
     } catch (error) {
         console.error('❌ Error fetching attendance history:', error);
-        attendanceHistory = []; 
+        attendanceHistory = [];
     }
-    
+
     await new Promise(resolve => setTimeout(resolve, 100));
 
     console.log('📊 Final attendance history count:', attendanceHistory.length);
@@ -862,7 +870,7 @@ async function generateReport() {
                 const nameB = b.full_name.toLowerCase();
                 return nameA.localeCompare(nameB);
             });
-            
+
             if (reportPeriod && data.start_date && data.end_date) {
                 const formattedStart = formatDateToReadable(data.start_date);
                 const formattedEnd = formatDateToReadable(data.end_date);
@@ -1065,7 +1073,7 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function calculatePerformance(total_classes, present_count, absent_count, late_count, attendance_pattern) {
-    
+
     total_classes = Number(total_classes) || 0;
     present_count = Number(present_count) || 0;
     late_count = Number(late_count) || 0;
@@ -1091,15 +1099,15 @@ function calculatePerformance(total_classes, present_count, absent_count, late_c
 
     const totalAttendedClass = present_count + late_count;
 
-    
+
     const attendanceRate = (totalAttendedClass / total_classes) * 100;
 
-    
+
     const punctualityRate = totalAttendedClass > 0
         ? (present_count / totalAttendedClass) * 100
         : 0;
 
-    
+
     const consistencyScore = calculateConsistency(attendance_pattern);
 
     const score = (attendanceRate * 0.5) +
@@ -1146,7 +1154,7 @@ function calculateConsistency(attendancePattern) {
         return 0;
     }
 
-    
+
     let currentStreak = 0;
     let streaks = [];
     let absenceCount = 0;
@@ -1165,12 +1173,12 @@ function calculateConsistency(attendancePattern) {
         }
     }
 
-    
+
     if (currentStreak > 0) {
         streaks.push(currentStreak);
     }
 
-    
+
     if (absenceCount === 0) {
         return 100;
     }

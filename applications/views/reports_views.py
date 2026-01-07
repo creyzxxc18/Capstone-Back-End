@@ -138,15 +138,15 @@ def get_professor_attendance_history(request):
                     doc_dt = datetime.strptime(doc_date_str, "%Y-%m-%d")
                     if not (start_dt <= doc_dt <= end_dt):
                         continue
-                    
+
                     attendance_status = data.get("status", "pending").lower()
-                    
+
                     if attendance_status in ["holiday", "suspended"]:
                         logger.info(
                             f"Skipping {attendance_status} record for date {doc_date_str}"
                         )
                         continue
-                    
+
                     class_id = data.get("classId")
                     subject_code = "N/A"
                     subject_name = "N/A"

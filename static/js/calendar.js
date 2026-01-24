@@ -1,3 +1,5 @@
+console.log("UPDATED");
+
 const calendarData = document.getElementById('calendarData');
 let currentYear = parseInt(calendarData?.dataset.year) || new Date().getFullYear();
 let currentMonth = parseInt(calendarData?.dataset.month) || (new Date().getMonth() + 1);
@@ -2350,4 +2352,5 @@ async function clearDayStatus() {
         console.error('❌ Error clearing day status:', err);
         alert('Error clearing day status');
     }
+
 }

@@ -14,6 +14,9 @@ from django.contrib.auth.views import LoginView
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib import messages
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.views.decorators.http import require_http_methods
+from django.contrib.auth import logout
 
 User = get_user_model()
 logger = logging.getLogger(__name__)
@@ -77,58 +80,196 @@ class RegisterView(View):
             )
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class CustomLoginRedirectView(LoginView):
     template_name = "login.html"
+    redirect_authenticated_user = True
 
     def dispatch(self, request, *args, **kwargs):
+
+        if (
+            request.headers.get("X-Requested-With") == "XMLHttpRequest"
+            or request.content_type == "application/json"
+        ):
+            return self.handle_jwt_login(request)
+
         if request.method == "POST":
             username = request.POST.get("username", "")
 
-            lockout_key = f"lockout_{username}"
-            attempts_key = f"attempts_{username}"
-
-            lockout_until = request.session.get(lockout_key)
-
-            if lockout_until:
-                lockout_time = timezone.datetime.fromisoformat(lockout_until)
-                if timezone.now() < lockout_time:
-                    remaining = (lockout_time - timezone.now()).total_seconds() / 60
+            try:
+                user = User.objects.get(email=username)
+                if user.is_locked:
                     messages.error(
                         request,
-                        f"Too many failed attempts. Please try again in {int(remaining)} minutes.",
+                        "🔒 Your account has been locked due to multiple failed login attempts. Please contact the administrator to unlock your account.",
                     )
                     return self.render_to_response(self.get_context_data())
-                else:
-
-                    request.session.pop(lockout_key, None)
-                    request.session.pop(attempts_key, None)
+            except User.DoesNotExist:
+                pass
 
         return super().dispatch(request, *args, **kwargs)
 
+    def post(self, request, *args, **kwargs):
+
+        if (
+            request.content_type == "application/json"
+            or request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        ):
+            return self.handle_jwt_login(request)
+
+        return super().post(request, *args, **kwargs)
+
+    def handle_jwt_login(self, request):
+        try:
+            data = json.loads(request.body)
+            email = data.get("username") or data.get("email")
+            password = data.get("password")
+
+            if not email or not password:
+                return JsonResponse(
+                    {"success": False, "error": "Email and password are required"},
+                    status=400,
+                )
+
+            try:
+                user = User.objects.get(email=email)
+
+                if user.is_locked:
+                    return JsonResponse(
+                        {
+                            "success": False,
+                            "error": "Account is locked. Contact administrator.",
+                            "locked": True,
+                        },
+                        status=403,
+                    )
+
+                if not user.check_password(password):
+                    user.failed_login_attempts += 1
+
+                    if user.failed_login_attempts >= 5:
+                        user.is_locked = True
+                        user.locked_at = timezone.now()
+                        user.save()
+
+                        self.send_account_locked_email(
+                            user.email, user.first_name or "User"
+                        )
+
+                        return JsonResponse(
+                            {
+                                "success": False,
+                                "error": "Account locked. Email sent with instructions.",
+                                "locked": True,
+                            },
+                            status=403,
+                        )
+                    else:
+                        user.save()
+                        remaining = 5 - user.failed_login_attempts
+                        return JsonResponse(
+                            {
+                                "success": False,
+                                "error": f"Invalid credentials. {remaining} attempts remaining.",
+                                "remaining_attempts": remaining,
+                            },
+                            status=401,
+                        )
+
+                login(request, user)
+
+                user.failed_login_attempts = 0
+                user.save()
+
+                refresh = RefreshToken.for_user(user)
+                refresh["email"] = user.email
+                refresh["first_name"] = user.first_name
+                refresh["last_name"] = user.last_name
+                refresh["is_first_login"] = user.isFirstLogin
+
+                redirect_url = None
+                if not user.isFirstLogin:
+                    if user.is_superuser:
+                        redirect_url = "/dashboard/"
+                    else:
+                        try:
+                            from applications.models import Profile
+
+                            profile = Profile.objects.get(user=user)
+                            refresh["role"] = profile.userRole
+
+                            role = profile.userRole.lower()
+                            if role == "admin":
+                                redirect_url = "/dashboard/"
+                            elif role in ["staff", "staff/checker"]:
+                                redirect_url = "/staff_home/"
+                        except:
+                            refresh["role"] = "staff"
+                            redirect_url = "/staff_home/"
+
+                    if not redirect_url:
+                        redirect_url = (
+                            "/staff_home/" if user.is_staff else "/dashboard/"
+                        )
+
+                return JsonResponse(
+                    {
+                        "success": True,
+                        "access": str(refresh.access_token),
+                        "refresh": str(refresh),
+                        "redirect_url": redirect_url,
+                        "user": {
+                            "id": user.id,
+                            "email": user.email,
+                            "first_name": user.first_name,
+                            "last_name": user.last_name,
+                            "is_first_login": user.isFirstLogin,
+                        },
+                    }
+                )
+            except User.DoesNotExist:
+                return JsonResponse(
+                    {"success": False, "error": "Invalid credentials."}, status=401
+                )
+            except Exception as e:
+                return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+        except json.JSONDecodeError:
+            return JsonResponse({"success": False, "error": "Invalid JSON"}, status=400)
+        except Exception as e:
+            logger.error(f"JWT login error: {str(e)}")
+            return JsonResponse({"success": False, "error": "Login failed"}, status=500)
+
     def form_invalid(self, form):
         username = self.request.POST.get("username", "")
-        attempts_key = f"attempts_{username}"
-        lockout_key = f"lockout_{username}"
 
-        attempts = self.request.session.get(attempts_key, 0) + 1
-        self.request.session[attempts_key] = attempts
+        try:
+            user = User.objects.get(email=username)
+            user.failed_login_attempts += 1
 
-        if attempts >= 5:
-            lockout_until = timezone.now() + timedelta(minutes=15)
-            self.request.session[lockout_key] = lockout_until.isoformat()
-            messages.error(
-                self.request,
-                "🚫Too many failed login attempts. Your account has been locked for 15 minutes.",
-            )
-            logger.warning(
-                f"🔒Account locked for user: {username} after {attempts} failed attempts"
-            )
-        else:
-            remaining_attempts = 5 - attempts
-            messages.error(
-                self.request,
-                f"⚠️Invalid email or password. {remaining_attempts} attempt(s) remaining.",
-            )
+            if user.failed_login_attempts >= 5:
+                user.is_locked = True
+                user.locked_at = timezone.now()
+                user.save()
+
+                self.send_account_locked_email(user.email, user.first_name or "User")
+
+                messages.error(
+                    self.request,
+                    "🚫 Your account has been locked due to too many failed login attempts. An email has been sent with instructions. Please contact the administrator to unlock your account.",
+                )
+                logger.warning(
+                    f"🔒 Account locked for user: {username} after {user.failed_login_attempts} failed attempts"
+                )
+            else:
+                remaining_attempts = 5 - user.failed_login_attempts
+                user.save()
+                messages.error(
+                    self.request,
+                    f"⚠️ Invalid email or password. {remaining_attempts} attempt(s) remaining before account lockout.",
+                )
+        except User.DoesNotExist:
+            messages.error(self.request, "⚠️ Invalid email or password.")
 
         form.data = {}
         form.files = {}
@@ -137,13 +278,12 @@ class CustomLoginRedirectView(LoginView):
 
     def form_valid(self, form):
         username = self.request.POST.get("username", "")
-        attempts_key = f"attempts_{username}"
-        lockout_key = f"lockout_{username}"
-
-        self.request.session.pop(attempts_key, None)
-        self.request.session.pop(lockout_key, None)
 
         user = form.get_user()
+
+        user.failed_login_attempts = 0
+        user.save()
+
         login(self.request, user)
 
         remember_me = self.request.POST.get("remember-me")
@@ -155,13 +295,41 @@ class CustomLoginRedirectView(LoginView):
         self.request.session["login_success"] = True
         self.request.session["redirect_to"] = str(self.get_success_url())
 
-        return redirect("login")
+        return redirect(self.get_success_url())
+
+    def send_account_locked_email(self, email, user_name):
+        try:
+            subject = "Account Locked - CSCQC Attendance System"
+            message = f"""
+Hello {user_name},
+
+Your account has been locked due to multiple failed login attempts for security reasons.
+
+To unlock your account, please go to the system administrator.
+
+Email: {email}
+
+If you did not attempt to log in, please contact the administrator immediately as your account may be compromised.
+
+Best regards,
+CSCQC Administration Team
+            """
+            send_mail(
+                subject=subject,
+                message=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[email],
+                fail_silently=False,
+            )
+            logger.info(f"✅ Account locked email sent to {email}")
+        except Exception as e:
+            logger.error(f"❌ Failed to send account locked email to {email}: {str(e)}")
 
     def get_success_url(self):
         user = self.request.user
 
         if user.isFirstLogin:
-            return reverse_lazy("login")
+            return reverse_lazy("redirect_after_login")
 
         if user.is_superuser:
             return reverse_lazy("dashboard")
@@ -386,7 +554,6 @@ class RequestPasswordResetView(View):
                 return JsonResponse(
                     {"success": False, "error": "Email not found"}, status=404
                 )
-
             reset_link = f"{settings.SITE_URL}/login/?reset_email={email}"
 
             send_mail(
@@ -416,7 +583,6 @@ class ResetPasswordView(View):
 
             User = get_user_model()
             user = User.objects.get(email=email)
-
             if user.check_password(new_password):
                 return JsonResponse(
                     {
@@ -425,7 +591,6 @@ class ResetPasswordView(View):
                     },
                     status=400,
                 )
-
             if len(new_password) < 8:
                 return JsonResponse(
                     {
@@ -510,3 +675,15 @@ def get_login_redirect(request):
 
     request.session.pop("login_success", None)
     return JsonResponse({"redirect_to": None})
+
+
+@require_http_methods(["POST"])
+def logout_view(request):
+    """Handle logout for both session and JWT authentication"""
+    logout(request)
+    if (
+        request.content_type == "application/json"
+        or request.headers.get("X-Requested-With") == "XMLHttpRequest"
+    ):
+        return JsonResponse({"success": True, "message": "Logged out successfully"})
+    return redirect("login")

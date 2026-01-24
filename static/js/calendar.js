@@ -40,25 +40,42 @@ async function enrichClassesWithTeacherNames(classes) {
     console.log(`📋 Found ${teacherIds.length} unique teachers:`, teacherIds);
 
     const teacherMap = {};
+    const activeTeachers = new Set();
+
     for (const teacherId of teacherIds) {
         try {
             const response = await fetch(`get_user_profile/?uid=${teacherId}`);
             const data = await response.json();
             if (data.success && data.user) {
                 const user = data.user;
-                const firstName = user.firstName || '';
-                const midName = user.midName || '';
-                const lastName = user.lastName || '';
-                const middleInitial = midName ? ` ${midName[0]}.` : '';
-                teacherMap[teacherId] = `${firstName}${middleInitial} ${lastName}`.trim();
-                console.log(`✅ Teacher ${teacherId}: ${teacherMap[teacherId]}`);
+
+
+                const isActive = user.isActive !== false;
+
+                if (isActive) {
+                    const firstName = user.firstName || '';
+                    const midName = user.midName || '';
+                    const lastName = user.lastName || '';
+                    const middleInitial = midName ? ` ${midName[0]}.` : '';
+                    teacherMap[teacherId] = `${firstName}${middleInitial} ${lastName}`.trim();
+                    activeTeachers.add(teacherId);
+                    console.log(`✅ Active Teacher ${teacherId}: ${teacherMap[teacherId]}`);
+                } else {
+                    console.log(`🚫 Archived Teacher ${teacherId} - EXCLUDED from calendar`);
+                }
             }
         } catch (err) {
             console.warn(`⚠️ Could not fetch teacher name for ${teacherId}`);
         }
     }
 
-    const enrichedClasses = classes.map(cls => ({
+
+    const activeClasses = classes.filter(cls => activeTeachers.has(cls.teacherUid));
+
+    console.log(`📊 Filtered: ${classes.length} total classes → ${activeClasses.length} active classes`);
+    console.log(`🚫 Excluded ${classes.length - activeClasses.length} classes from archived users`);
+
+    const enrichedClasses = activeClasses.map(cls => ({
         ...cls,
         teacher_name: teacherMap[cls.teacherUid] || cls.teacher_name || cls.teacherUid
     }));

@@ -1,7 +1,7 @@
 {% extends "main_template.html" %}
 {% load static %}
 
-{% block title %} Semester {% endblock %}
+{% block title %} Add Subject {% endblock %}
 
 {% block stylesheet %}
 <link rel="stylesheet" href="{% static 'css/semester.css' %}"> {% endblock %}
@@ -16,6 +16,20 @@
             <button class="search-btn" onclick="searchTable()">
                 <span class="material-symbols-outlined">search</span>
             </button>
+        </div>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label for="departmentFilter">Department</label>
+                <select id="departmentFilter" onchange="filterByDepartment()">
+                    <option value="">All Departments</option>
+                    <option value="information technology">Information Technology</option>
+                    <option value="tourism">Tourism</option>
+                    <option value="business administration">Business Administration</option>
+                    <option value="criminology">Criminology</option>
+                    <option value="basic education">Basic Education</option>
+                </select>
+            </div>
         </div>
 
         <div class="btns">

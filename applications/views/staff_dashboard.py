@@ -15,29 +15,23 @@ def staff_dashboard_view(request):
     db = firestore.client()
 
     start_date = datetime.now() - timedelta(weeks=16)
-
     attendance_ref = db.collection("attendance")
     query = attendance_ref.where("date", ">=", start_date).stream()
 
-    present_count, late_count, absent_count = get_weekly_status()
+    present_count, late_count, absent_count, week_start, week_end = get_weekly_status()
     performers = get_monthly_performers()
     department_performers = get_department_analysis()
     attendance_logs = get_attendance_logs()
-    print(attendance_logs)
-
-    ticks = range(0, 101, 10)
 
     weekly_data = {}
     for doc in query:
         data = doc.to_dict()
         date = data["date"]
-
         if hasattr(date, "timestamp"):
             date = datetime.fromtimestamp(date.timestamp())
-
         status = data["status"]
-
         week = date.isocalendar()[1]
+
         if week not in weekly_data:
             weekly_data[week] = {"present": 0, "absent": 0, "late": 0}
 
@@ -66,19 +60,18 @@ def staff_dashboard_view(request):
             {"date": "2025-05-26", "present": 177},
             {"date": "2025-06-02", "present": 182},
         ]
-
         weeks = [item["date"] for item in fallback_data]
         present_counts = [item["present"] for item in fallback_data]
 
     model = ExponentialSmoothing(
         present_counts, trend="add", seasonal="add", seasonal_periods=4
     )
-
     fitted = model.fit(optimized=True)
-
     smoothed = fitted.fittedvalues.tolist()
     forecast = fitted.forecast(4).tolist()
-    forecast = [max(0, x) for x in forecast]
+
+    # Calculate insights
+    insights = calculate_insights(present_counts, forecast, weeks)
 
     context = {
         "original": present_counts,
@@ -86,33 +79,130 @@ def staff_dashboard_view(request):
         "forecast": forecast,
         "weeks": weeks,
         "profile": profile,
-        "ticks": ticks,
         # weekly count
         "present_count": present_count,
         "late_count": late_count,
         "absent_count": absent_count,
+        "week_start": week_start,
+        "week_end": week_end,
         # performers
         "top_performer": performers["top_performer"],
-        "top_runners_up": performers["top_runners_up"],
+        "top_rankers": performers["top_rankers"],
         "poor_performer": performers["poor_performer"],
-        "poor_runners_up": performers["poor_runners_up"],
+        "poor_rankers": performers["poor_rankers"],
         # department
         "department": department_performers["all_departments"],
+        "ticks": department_performers["ticks"],
+        "tick_positions": department_performers["tick_positions"],
         # attendance logs
         "attendance": attendance_logs,
+        # insights
+        "insights": insights,
     }
 
-    print("Dashboard context prepared:", context)
+    return render(request, "staff/staff_dashboard.html", context)
 
-    return render(request, "../template/staff/staff_dashboard.html", context)
+
+def calculate_insights(present_counts, forecast, weeks):
+    """Calculate dynamic insights from attendance data"""
+    insights = []
+
+    # Calculate average attendance
+    if present_counts:
+        avg_attendance = round(sum(present_counts) / len(present_counts))
+
+        # Trend insight - show forecast prediction with week range
+        if forecast:
+            last_forecast = round(forecast[-1])
+
+            # Calculate the forecast week range
+            forecast_weeks_ahead = len(forecast)
+            forecast_start = datetime.now() + timedelta(weeks=forecast_weeks_ahead)
+
+            # Get Monday and Sunday of that week
+            days_since_monday = forecast_start.weekday()
+            week_start = forecast_start - timedelta(days=days_since_monday)
+            week_end = week_start + timedelta(days=6)
+
+            week_range = (
+                f"{week_start.strftime('%b %d')} to {week_end.strftime('%b %d')}"
+            )
+
+            insights.append(
+                {
+                    "type": "trend",
+                    "label": "Trend",
+                    "message": f"Forecast predicts {last_forecast} attendees for week of {week_range}",
+                }
+            )
+
+        # Pattern insight - show average stability
+        if len(present_counts) >= 2:
+            variance = max(present_counts) - min(present_counts)
+            variance_pct = (
+                (variance / avg_attendance * 100) if avg_attendance > 0 else 0
+            )
+
+            if variance_pct < 15:
+                insights.append(
+                    {
+                        "type": "pattern",
+                        "label": "Pattern",
+                        "message": f"Average attendance stable at ~{avg_attendance} per week",
+                    }
+                )
+            else:
+                insights.append(
+                    {
+                        "type": "pattern",
+                        "label": "Pattern",
+                        "message": f"Attendance varies between {min(present_counts)}-{max(present_counts)} per week",
+                    }
+                )
+
+        # Critical insight - check for declining trend with week range
+        if len(present_counts) >= 3:
+            recent_avg = sum(present_counts[-3:]) / 3
+            older_avg = sum(present_counts[:3]) / 3
+
+            if recent_avg < older_avg * 0.9:  # 10% decline
+                decline_pct = round(((older_avg - recent_avg) / older_avg) * 100)
+
+                # Get the date range of recent 3 weeks
+                today = datetime.now()
+                recent_week_start = today - timedelta(weeks=2)
+
+                # Get Monday of that week
+                days_since_monday = recent_week_start.weekday()
+                recent_monday = recent_week_start - timedelta(days=days_since_monday)
+                recent_sunday = today + timedelta(days=(6 - today.weekday()))
+
+                recent_range = f"{recent_monday.strftime('%b %d')} to {recent_sunday.strftime('%b %d')}"
+
+                insights.append(
+                    {
+                        "type": "critical",
+                        "label": "Alert",
+                        "message": f"Attendance declined by {decline_pct}% in recent weeks ({recent_range})",
+                    }
+                )
+
+    return insights
 
 
 def get_weekly_status():
     db = firestore.client()
 
+    today = datetime.now()
+    days_since_monday = today.weekday()
+    week_start = today - timedelta(days=days_since_monday)
+    week_start = week_start.replace(hour=0, minute=0, second=0, microsecond=0)
+    week_end = week_start + timedelta(days=7)
+
     query = (
         db.collection("attendance")
-        .where("date", ">=", (datetime.now() - timedelta(weeks=1)))
+        .where("date", ">=", week_start)
+        .where("date", "<", week_end)
         .stream()
     )
 
@@ -131,7 +221,13 @@ def get_weekly_status():
         elif status == "absent":
             absent_count += 1
 
-    return (present_count, late_count, absent_count)
+    return (
+        present_count,
+        late_count,
+        absent_count,
+        week_start,
+        week_end - timedelta(days=1),
+    )
 
 
 def get_monthly_performers():
@@ -217,17 +313,18 @@ def get_monthly_performers():
         }
 
     top_performer = user_rates[0] if len(user_rates) > 0 else None
-    top_runners_up = user_rates[1:3] if len(user_rates) > 1 else []
+    top_rankers = user_rates[:10] if len(user_rates) >= 10 else user_rates
 
+    print("Top rankers:", [f"{r['name']}: {r['rate']}%" for r in top_rankers])
     poor_performer = user_rates[-1] if len(user_rates) > 0 else None
-    poor_runners_up = user_rates[-3:-1] if len(user_rates) > 2 else []
-    poor_runners_up.reverse()
+    poor_rankers = user_rates[-10:] if len(user_rates) >= 10 else user_rates
+    poor_rankers.reverse()
 
     return {
         "top_performer": top_performer,
-        "top_runners_up": top_runners_up,
+        "top_rankers": top_rankers,
         "poor_performer": poor_performer,
-        "poor_runners_up": poor_runners_up,
+        "poor_rankers": poor_rankers,
     }
 
 
@@ -246,7 +343,7 @@ def get_department_analysis():
     start_date = datetime.now() - timedelta(days=30)
     query = db.collection("attendance").where("date", ">=", start_date).stream()
 
-    dept_stats = defaultdict(lambda: {"present": 0, "absent": 0, "late": 0, "total": 0})
+    dept_stats = defaultdict(lambda: {"count": 0})
 
     for doc in query:
         data = doc.to_dict()
@@ -254,72 +351,67 @@ def get_department_analysis():
         status = data.get("status", "").lower()
 
         user_info = users_dict.get(uid)
-        if user_info:
+        if user_info and status == "present":
             dept = user_info["department"]
-
-            dept_stats[dept]["total"] += 1
-
-            if status == "present":
-                dept_stats[dept]["present"] += 1
-            elif status == "absent":
-                dept_stats[dept]["absent"] += 1
-            elif status == "late":
-                dept_stats[dept]["late"] += 1
+            dept_stats[dept]["count"] += 1
 
     department_map = {
-        "Business Administration": {
-            "name": "Business Administration",
-            "class": "bsba",
-            "color": "#DFEA7A",
-        },
-        "Information Technology": {
-            "name": "Information Technology",
-            "class": "bsit",
-            "color": "#924FD1",
-        },
-        "Tourism Management": {
-            "name": "Tourism Management",
-            "class": "bstm",
-            "color": "#FC81EC",
-        },
-        "Basic Education": {
-            "name": "Basic Education",
-            "class": "educ",
-            "color": "#7AB4EA",
-        },
-        "Criminology": {"name": "Criminology", "class": "bscrim", "color": "#7A7CEA"},
+        "Business Administration": {"acronym": "BA", "color": "#DFEA7A"},
+        "Information Technology": {"acronym": "IT", "color": "#924FD1"},
+        "Tourism Management": {"acronym": "TM", "color": "#FC81EC"},
+        "Basic Education": {"acronym": "EDUC", "color": "#7AB4EA"},
+        "Criminology": {"acronym": "CRIM", "color": "#7A7CEA"},
     }
 
-    dept_rates = {}
+    # Initialize all departments with 0 count if they don't exist
+    for dept_name in department_map.keys():
+        if dept_name not in dept_stats:
+            dept_stats[dept_name] = {"count": 0}
 
-    for dept_code, stats in dept_stats.items():
-        total = stats["total"]
-        if total > 0:
-            rate = (stats["present"] / total) * 100
+    # Find max count for scaling
+    max_count = max((stats["count"] for stats in dept_stats.values()), default=100)
 
-            dept_info = department_map.get(
-                dept_code, {"name": dept_code, "class": "gen-ed", "color": "#7AEA80"}
-            )
+    # Calculate Y-axis range and ticks
+    if max_count <= 100:
+        y_max = 100
+        tick_interval = 20
+    else:
+        # Round up to nearest hundred
+        y_max = ((max_count // 100) + 1) * 100
+        tick_interval = y_max // 5
 
-            dept_rates[dept_code] = {
-                "code": dept_code,
-                "name": dept_info["name"],
-                "class": dept_info["class"],
+    ticks = list(range(0, y_max + 1, tick_interval))
+
+    # Generate tick positions as percentages (0-100%) for grid lines
+    tick_positions = [i * 20 for i in range(6)]  # [0, 20, 40, 60, 80, 100]
+
+    dept_data = []
+
+    # Loop through all departments in the map to ensure all are included
+    for dept_code, dept_info in department_map.items():
+        count = dept_stats.get(dept_code, {"count": 0})["count"]
+
+        # Calculate height as percentage of y_max
+        height = (count / y_max * 100) if y_max > 0 else 0
+
+        dept_data.append(
+            {
+                "name": dept_info["acronym"],
+                "class": dept_info["acronym"],
                 "color": dept_info["color"],
-                "rate": round(rate, 2),
-                "present": stats["present"],
-                "total": total,
-                "height": int(rate),
+                "rate": count,
+                "height": height,
             }
+        )
 
-    # Separate top and poor performers
-    sorted_depts = sorted(dept_rates.values(), key=lambda x: x["rate"], reverse=True)
+    # Sort by count descending
+    sorted_depts = sorted(dept_data, key=lambda x: x["rate"], reverse=True)
 
-    return {"all_departments": sorted_depts}
-
-
-from datetime import datetime
-import pytz
+    return {
+        "all_departments": sorted_depts,
+        "ticks": ticks,
+        "tick_positions": tick_positions,
+    }
 
 
 def get_attendance_logs():

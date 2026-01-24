@@ -1430,11 +1430,11 @@ class FirebaseService:
             
             logger.info(f"Found {len(all_attendance)} total attendance records")
             
-            
+            # Get all day statuses (holidays/suspended days)
             day_status_ref = self.db.collection("dayStatus")
             all_day_statuses = list(day_status_ref.stream())
             
-            
+            # Build a map of dates to their statuses
             day_status_map = {}
             for doc in all_day_statuses:
                 date_str = doc.id
@@ -1501,7 +1501,7 @@ class FirebaseService:
                         doc_dt = datetime.strptime(doc_date_str, "%Y-%m-%d")
                         
                         if start_dt <= doc_dt <= end_dt:
-                            logger.info(f"   ✔ Including attendance for {full_name}: Date={doc_date_str}, Status={data.get('status')}")
+                            logger.info(f"   ✓ Including attendance for {full_name}: Date={doc_date_str}, Status={data.get('status')}")
                             user_attendance.append({
                                 "date": doc_date_str,
                                 "timeIn": data.get("timeIn"),
@@ -1529,33 +1529,44 @@ class FirebaseService:
                 present_count = 0
                 absent_count = 0
                 late_count = 0
-                holiday_count = 0  
-                suspended_count = 0  
+                holiday_count = 0
+                suspended_count = 0
                 total_hours = 0.0
                 
+                # Count holidays and suspended days in the date range
+                # This is the KEY FIX: Count ALL holidays/suspended days in range, not just those with attendance
+                current_date = start_dt
+                while current_date <= end_dt:
+                    date_str = current_date.strftime("%Y-%m-%d")
+                    day_status = day_status_map.get(date_str, "").lower()
+                    
+                    if day_status == "holiday":
+                        holiday_count += 1
+                        logger.info(f"   🎉 {full_name}: {date_str} is a HOLIDAY")
+                    elif day_status == "suspended":
+                        suspended_count += 1
+                        logger.info(f"   ⚠️ {full_name}: {date_str} is SUSPENDED")
+                    
+                    current_date += timedelta(days=1)
+                
+                # Group attendance by date (keep only latest record per date)
                 attendance_by_date = {}
                 for att in user_attendance:
                     date = att["date"]
                     if date not in attendance_by_date:
                         attendance_by_date[date] = att
                 
+                # Count attendance statuses (excluding holidays and suspended days)
                 for date_str, att in attendance_by_date.items():
                     status = att.get("status", "pending").lower()
                     
-                    
+                    # Skip if this date is a holiday or suspended day
                     day_status = day_status_map.get(date_str, "").lower()
+                    if day_status in ["holiday", "suspended"]:
+                        logger.info(f"   ⏭️ {full_name}: Skipping {date_str} ({day_status}) - already counted")
+                        continue
                     
-                    if day_status == "holiday":
-                        holiday_count += 1
-                        logger.info(f"   🎉 {full_name}: {date_str} is a HOLIDAY - not counting as absent")
-                        continue  
-                    
-                    if day_status == "suspended":
-                        suspended_count += 1
-                        logger.info(f"   ⚠️ {full_name}: {date_str} is SUSPENDED - not counting as absent")
-                        continue  
-                    
-                    
+                    # Count based on status
                     if status == "present":
                         present_count += 1
                     elif status == "late":
@@ -1575,7 +1586,7 @@ class FirebaseService:
                                 absent_count += 1
                                 logger.info(f"   ⚠️ {full_name}: Marking {date_str} as ABSENT (pending but date passed)")
                     
-                    
+                    # Calculate hours worked
                     time_in = att.get("timeIn", "")
                     time_out = att.get("timeOut", "")
                     
@@ -1595,10 +1606,10 @@ class FirebaseService:
                         except Exception as e:
                             logger.warning(f"  Error calculating hours: {str(e)}")
                 
+                # Calculate total working days (exclude holidays and suspended days)
+                total_classes_count = len(attendance_by_date)
                 
-                total_classes_count = len(attendance_by_date) - holiday_count - suspended_count
-                
-                
+                # Calculate percentages
                 if total_classes_count > 0:
                     present_percentage = round((present_count / total_classes_count) * 100, 1)
                     absent_percentage = round((absent_count / total_classes_count) * 100, 1)
@@ -1610,12 +1621,12 @@ class FirebaseService:
                 
                 logger.info(f"User {full_name} FINAL: Present={present_count}, Late={late_count}, Absent={absent_count}, Holiday={holiday_count}, Suspended={suspended_count}, Total Working Days={total_classes_count}, Hours={total_hours}")
                 
-                
+                # Build attendance pattern for consistency scoring
                 attendance_pattern = []
                 all_dates = sorted(list(attendance_by_date.keys()))
                 
                 for date_str in all_dates:
-                    
+                    # Skip holidays and suspended days in the pattern
                     day_status = day_status_map.get(date_str, "").lower()
                     if day_status in ["holiday", "suspended"]:
                         continue
@@ -1648,9 +1659,9 @@ class FirebaseService:
                     "present_count": present_count,
                     "absent_count": absent_count,
                     "late_count": late_count,
-                    "holiday_count": holiday_count,  
-                    "suspended_count": suspended_count,  
-                    "total_classes": total_classes_count,  
+                    "holiday_count": holiday_count,
+                    "suspended_count": suspended_count,
+                    "total_classes": total_classes_count,
                     "present_percentage": present_percentage,
                     "absent_percentage": absent_percentage,
                     "late_percentage": late_percentage,

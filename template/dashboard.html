@@ -11,333 +11,518 @@
 {% block maincontent %}
 
 <div class="dashboard-container">
-    <div class="container-header">
-        <p class="date-label" style="color:black;">DATE TODAY</p>
-        <p class="date-value" style="color:black;">{% now "F j, Y" %}</p>
-    </div>
+    <h2 style="text-transform: capitalize;">Attendance Dashboard</h2>
+    <h5>Week of {{ week_start|date:"F j" }}-{{ week_end|date:"j, Y" }}</h5>
     <div class="dashboard-main-content">
         <div class="left-dashboard">
-        <div class="label1">Attendance Count this Week</div>
 
-        <div class="stat-card">
-            <div class="stat-left">
-                <div class="stat-icon present">
-                    <i class="fas fa-user-check"></i>
+            <div class="stat-card">
+                <div class="stat-left">
+                    <div class="stat-icon present">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>PRESENT:</h3>
+                        <p>{{present_count}}</p>
+                    </div>
                 </div>
-                <div class="stat-info">
-                    <h3>PRESENT:</h3>
-                    <p>{{present_count}}</p>
+                <div class="chevron">
+                    <i class="fas fa-chevron-right"></i>
                 </div>
             </div>
-            <div class="chevron">
-                <i class="fas fa-chevron-right"></i>
-            </div>
-        </div>
 
-        <div class="stat-card">
-            <div class="stat-left">
-                <div class="stat-icon absent">
-                    <i class="fas fa-user-times"></i>
+            <div class="stat-card">
+                <div class="stat-left">
+                    <div class="stat-icon absent">
+                        <i class="fas fa-user-times"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>ABSENT:</h3>
+                        <p>{{absent_count}}</p>
+                    </div>
                 </div>
-                <div class="stat-info">
-                    <h3>ABSENT:</h3>
-                    <p>{{absent_count}}</p>
+                <div class="chevron">
+                    <i class="fas fa-chevron-right"></i>
                 </div>
             </div>
-            <div class="chevron">
-                <i class="fas fa-chevron-right"></i>
-            </div>
-        </div>
 
-        <div class="stat-card">
-            <div class="stat-left">
-                <div class="stat-icon leave">
-                    <i class="fas fa-clock"></i>
+            <div class="stat-card">
+                <div class="stat-left">
+                    <div class="stat-icon leave">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3>LATE:</h3>
+                        <p>{{late_count}}</p>
+                    </div>
                 </div>
-                <div class="stat-info">
-                    <h3>LATE:</h3>
-                    <p>{{late_count}}</p>
+                <div class="chevron">
+                    <i class="fas fa-chevron-right"></i>
                 </div>
             </div>
-            <div class="chevron">
-                <i class="fas fa-chevron-right"></i>
-            </div>
-        </div>
 
-        <div class="label2">Attendance Forecast</div>
-
-        <div class="chart-container">
-            {% if error %}
+            <div class="chart-container">
+                <h3>Attendance Forecast</h3>
+                {% if error %}
                 <div style="color: red; padding: 20px; background: #fee2e2; border-radius: 8px;">
                     {{ error }}
                 </div>
-            {% elif original %}
+                {% elif original %}
                 <canvas id="holtwinters-chart" height="220px"></canvas>
-            {% else %}
+                {% else %}
                 <div style="color: #666; padding: 20px;">
                     No attendance data available for analytics.
                 </div>
-            {% endif %}
+                {% endif %}
+            </div>
+            <div class="cards-grid">
+                <div class="insights-container insights-minimal">
+                    <h3 style="text-transform: capitalize;">Attendance Insights</h3>
+
+                    <div class="line"></div>
+
+                    <div class="insights-list">
+                        {%if insights%}
+                        {%for insight in insights%}
+                        <div class="insight-item">
+                            <span class="insight-dot {{insight.type}}"></span>
+                            <p><span class="insight-label {{insight.type}}">{{insight.label}}:</span>
+                                {{insight.message}}</p>
+                        </div>
+                        {%endfor%}
+                        {%else%}
+                        <div class="insight-item">
+                            <span class="insight-dot pattern"></span>
+                            <p><span class="insight-label pattern">No Data:</span> Not enough attendance data for
+                                insights</p>
+                        </div>
+                        {%endif%}
+                    </div>
+                    <div class="insights-footer">
+                        <button class="view-logs-btn" onclick="openModal()">View Attendance Logs</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="label3">Attendance Logs</div>
-
-        <div class="log-list">
-            {% if attendance %}
-                {% for log in attendance %}
-                    {% if log.status == 'absent' %}
-                    <div class="log-item absent">
-                        <div class="time-badge absent">Absent</div>
-                        <div class="attendance-log-text">{{log.teacherName}} did not attend "{{log.subjectName}}" in room {{log.room}}</div>            
-                    </div>
-                    {% elif log.timeOut %}
-                    <div class="log-item timeOut">
-                        <div class="time-badge timeOut">Time Out: {{log.timeOut}}</div>
-                        <div class="attendance-log-text">{{log.teacherName}} has timed out from "{{log.subjectName}}" in room {{log.room}}</div>            
-                    </div>
+        <div class="right-dashboard">
+            <div class="performer-card">
+                <button onclick="openRankingsModal('top')"><i class="fa-solid fa-bars-staggered"></i>
+                    <p>View Rankings</p>
+                </button>
+                <div class="performer-title">Top Performer</div>
+                {%if top_performer%}
+                <div class="performer-icon">
+                    {% if poor_performer.profile_image %}
+                    <img src="{{ poor_performer.profile_image }}" alt="{{ poor_performer.name }}"
+                        class="performer-profile-img">
                     {% else %}
-                    <div class="log-item timeIn">
-                        <div class="time-badge timeIn">Time In: {{log.timeIn}}</div>
-                        <div class="attendance-log-text">{{log.teacherName}} has timed in to "{{log.subjectName}}" in room {{log.room}}</div>
-                    </div>
+                    <i class="fas fa-user"></i>
                     {% endif %}
-                {% endfor %}
-            {% else %}
-                <p>No Attendance Logs.</p>
-            {% endif %}
-        </div>
-    </div>
-
-    <div class="right-dashboard">
-        <div class="performer-card">
-            <div class="performer-title">Top Performer</div>
-            {%if top_performer%}
-            <div class="performer-icon top">
-                {% if top_performer.profile_image %}
-                    <img src="{{ top_performer.profile_image }}" alt="{{ top_performer.name }}" class="performer-profile-img">
-                {% else %}
-                    <i class="fas fa-user"></i>
-                {% endif %}
-            </div>
-            <div class="performer-name">{{top_performer.name}}</div>
-            <div class="performer-dept">{{top_performer.department}}</div>
-            <div class="performer-percentage">{{top_performer.rate}} %</div>
-            <div class="performer-stats">
-                <small>{{ top_performer.present }}/{{ top_performer.total }} days present</small>
-            </div>
-            <div class="sub-performers"> 
-                {%for runner_up in top_runners_up|slice:":2"%}
-                <div class="sub-performer">
-                    <div class="sub-performer-icon">
-                        {% if runner_up.profile_image %}
-                            <img src="{{ runner_up.profile_image }}" alt="{{ runner_up.name }}" class="runner-up-profile-img">
-                        {% else %}
-                            <i class="fas fa-user"></i>
-                        {% endif %}
-                    </div>
-                    <div class="sub-performer-info">
-                        <div class="sub-performer-name">{{runner_up.name}}</div>
-                        <div class="sub-performer-percentage">{{runner_up.rate}} %</div>
-                    </div>
                 </div>
-                {%endfor%}
-            </div>
-            {%else%}
-            <p>No data available</p>
-            {%endif%}
-        </div>
-
-        <div class="performer-card">
-            <div class="performer-title">Poor Performer</div>
-            {%if poor_performer%}
-            <div class="performer-icon poor">
-                {% if poor_performer.profile_image %}
-                    <img src="{{ poor_performer.profile_image }}" alt="{{ poor_performer.name }}" class="performer-profile-img">
-                {% else %}
-                    <i class="fas fa-user"></i>
-                {% endif %}
-            </div>
-            <div class="performer-name">{{poor_performer.name}}</div>
-            <div class="performer-dept">{{poor_performer.department}}</div>
-            <div class="performer-percentage">{{poor_performer.rate}}</div>
-            <div class="performer-stats">
-                <small>{{ poor_performer.present }}/{{ poor_performer.total }} days present</small>
-            </div>
-            {%endif%}
-
-            <div class="sub-performers">
-                {%for runner_up in poor_runners_up|slice:":2"%}
-                <div class="sub-performer">
-                    <div class="sub-performer-icon">
-                        {% if runner_up.profile_image %}
-                            <img src="{{ runner_up.profile_image }}" alt="{{ runner_up.name }}" class="runner-up-profile-img">
-                        {% else %}
-                            <i class="fas fa-user"></i>
-                        {% endif %}
-                    </div>
-                    <div class="sub-performer-info">
-                        <div class="sub-performer-name">{{runner_up.name}}</div>
-                        <div class="sub-performer-percentage">{{runner_up.rate}}</div>
-                    </div>
+                <div class="performer-name">{{top_performer.name}}</div>
+                <div class="performer-percentage">{{top_performer.rate}} %</div>
+                <div class="performer-stats">
+                    <small>{{ top_performer.present }}/{{ top_performer.total }} days present</small>
                 </div>
-                {%endfor%}
-
+                {%endif%}
             </div>
-        </div>
 
-        <div>Bar Graph for Department</div>
-
+            <div class="performer-card">
+                <button onclick="openRankingsModal('poor')"><i class="fa-solid fa-bars-staggered"></i>
+                    <p>View Rankings</p>
+                </button>
+                <div class="performer-title">Poor Performer</div>
+                {%if poor_performer%}
+                <div class="performer-icon">
+                    {% if poor_performer.profile_image %}
+                    <img src="{{ poor_performer.profile_image }}" alt="{{ poor_performer.name }}"
+                        class="performer-profile-img">
+                    {% else %}
+                    <i class="fas fa-user"></i>
+                    {% endif %}
+                </div>
+                <div class="performer-name">{{poor_performer.name}}</div>
+                <div class="performer-percentage">{{poor_performer.rate}}</div>
+                <div class="performer-stats">
+                    <small>{{ poor_performer.present }}/{{ poor_performer.total }} days present</small>
+                </div>
+                {%endif%}
+            </div>
             <div class="bar-chart-container">
+                <h2>Department's Attendance Count</h2>
                 {% if department %}
-                <div class="bar-chart">
 
+                <div class="chart-legend-top">
+                    {% for dept in department %}
+                    <div class="legend-item-bottom">
+                        <div class="legend-box" style="background: {{ dept.color }};"></div>
+                        <span style="text-transform: uppercase;">{{ dept.class }} ({{ dept.rate }})</span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="bar-chart">
                     <div class="chart-wrapper">
 
                         <div class="y-axis">
-                            <div class="y-axis-label" id="yAxisLabel">Attendance Performance</div>
-                            {% for i in ticks %}
+                            <div class="y-axis-label">Attendance Count</div>
+                            {% for i in ticks%}
                             <div class="y-tick">{{i}}</div>
                             {%endfor%}
                         </div>
 
                         <div class="grid-container">
-                            {% for i in ticks %}
+                            {% for i in tick_positions %}
                             <div class="grid-line" style="bottom: {{i}}%"></div>
                             {%endfor%}
                         </div>
-
 
                         <div class="bars-container">
                             {%for dept in department%}
                             <div class="bar-wrapper">
                                 <div class="bar {{dept.class}}"
-                                    style="height: {{dept.height}}%; background: {{dept.color}};"
+                                    style="--bar-height: {{dept.height}}%; background: {{dept.color}};"
                                     title="{{dept.name}}: {{dept.rate}}">
                                 </div>
                             </div>
                             {%endfor%}
                         </div>
 
-                        <div class="x-labels" id="xLabels">
+                        <div class="x-labels">
                             {%for dept in department%}
                             <div class="x-label">{{dept.name}}</div>
                             {%endfor%}
                         </div>
-                        <div class="x-axis-title" id="xAxisTitle">College Departments</div>
+
+                        <div class="x-axis-title">College Departments</div>
                     </div>
-                </div>
-                <div class="chart-legend-bottom">
-                    {% for dept in department %}
-                    <div class="legend-item-bottom">
-                        <div class="legend-box" style="background: {{ dept.color }};"></div>
-                        <span style="text-transform: uppercase;">{{ dept.class }} ({{ dept.rate }}%)</span>
-                    </div>
-                    {% endfor %}
                 </div>
                 {%endif%}
             </div>
+        </div>
     </div>
+    <div class="modal-overlay" id="logsModal" onclick="closeModal('logsModal', event)">
+        <div class="modal" onclick="event.stopPropagation()">
+
+            <div class="modal-header">
+                <h2>Attendance Logs</h2>
+                <button class="close-btn" onclick="closeModal('logsModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                {% if attendance %}
+                {%for log in attendance %}
+                <div class="log-item">
+                    <div class="log-row">
+                        <div class="log-name">{{log.teacherName}}</div>
+                        <span class="log-status {{log.status}}"
+                            style="text-transform: capitalize;">{{log.status}}</span>
+                    </div>
+                    <div class="log-info">{{log.subjectName}} - {{log.room}}</div>
+                    {%if log.status == 'absent'%}
+                    <div class="log-time">No Attendance Record</div>
+                    {%else%}
+                    <div class="log-time">Time In: {{log.timeIn}} | Time Out: {{log.timeOut}}</div>
+                    {%endif%}
+                </div>
+                {%endfor%}
+                {%else%}
+                <h2>No Attendance Records</h2>
+                {%endif%}
+            </div>
+        </div>
     </div>
-    
+
+    <div class="modal-overlay" id="rankingsModal" onclick="closeModal('rankingsModal', event)">
+        <div class="modal" onclick="event.stopPropagation()">
+
+            <div class="modal-header">
+                <h2 id="rankingsTitle">Attendance Rankings</h2>
+                <button class="close-btn" onclick="closeModal('rankingsModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="modal-body" id="rankingsBody">
+
+            </div>
+        </div>
+    </div>
 </div>
-    
+
 {% endblock %}
 
 {%block script_content%}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
-    {% if original and smoothed and forecast %}
-        const ctx = document.getElementById('holtwinters-chart');
-        
-        const weeks = {{ weeks|safe }};
-        const original = {{ original|safe }};
-        const smoothed = {{ smoothed|safe }};
-        const forecast = {{ forecast|safe }};
-        
-        // Extend weeks for forecast
-        const allWeeks = [];
-        weeks.forEach(w => allWeeks.push('Week ' + w));
-        for (let i = 1; i <= forecast.length; i++) {
-            allWeeks.push('Week ' + (weeks[weeks.length - 1] + i) + ' (forecast)');
+    function openModal() {
+        document.getElementById('logsModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function openRankingsModal(type) {
+        const modal = document.getElementById('rankingsModal');
+        const title = document.getElementById('rankingsTitle');
+        const body = document.getElementById('rankingsBody');
+
+        if (type === 'top') {
+            title.textContent = 'Top Performers';
+            body.innerHTML = `
+                    {% if top_rankers %}
+                        {% for ranker in top_rankers reversed %}
+                        <div class="rank-item {% if forloop.counter == 1 %}top-1{% elif forloop.counter == 2 %}top-2{% elif forloop.counter == 3 %}top-3{% endif %}">
+                            <div class="rank-number">{{ forloop.counter }}</div>
+                            <div class="rank-avatar">
+                                {% if ranker.profile_image %}
+                                    <img src="{{ ranker.profile_image }}" alt="{{ ranker.name }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                                {% else %}
+                                    {{ ranker.name|slice:":2"|upper }}
+                                {% endif %}
+                            </div>
+                            <div class="rank-info">
+                                <div class="rank-name">{{ ranker.name }}</div>
+                                <div class="rank-dept">{{ ranker.department }}</div>
+                            </div>
+                            <div>
+                                <div class="rank-rate">{{ ranker.rate }}%</div>
+                                <div class="rank-stats">{{ ranker.present }}/{{ ranker.total }} days</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-trophy"></i>
+                            <p>No ranking data available</p>
+                        </div>
+                    {% endif %}
+                `;
+        } else if (type === 'poor') {
+            title.textContent = 'Poor Performers';
+            body.innerHTML = `
+                    {% if poor_rankers %}
+                        {% for ranker in poor_rankers %}
+                        <div class="rank-item {% if forloop.counter == 1 %}bottom-1{% elif forloop.counter == 2 %}bottom-2{% elif forloop.counter == 3 %}bottom-3{% endif %}">
+                            <div class="rank-number">{{ forloop.counter }}</div>
+                            <div class="rank-avatar">
+                                {% if ranker.profile_image %}
+                                    <img src="{{ ranker.profile_image }}" alt="{{ ranker.name }}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">
+                                {% else %}
+                                    {{ ranker.name|slice:":2"|upper }}
+                                {% endif %}
+                            </div>
+                            <div class="rank-info">
+                                <div class="rank-name">{{ ranker.name }}</div>
+                                <div class="rank-dept">{{ ranker.department }}</div>
+                            </div>
+                            <div>
+                                <div class="rank-rate">{{ ranker.rate }}%</div>
+                                <div class="rank-stats">{{ ranker.present }}/{{ ranker.total }} days</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <i class="fas fa-trophy"></i>
+                            <p>No ranking data available</p>
+                        </div>
+                    {% endif %}
+                `;
         }
-        
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: allWeeks,
-                datasets: [{
-                    label: 'Actual Present',
-                    data: [...original, ...Array(forecast.length).fill(null)],
-                    borderColor: '#9F7AEA',
-                    backgroundColor: 'rgba(159, 122, 234, 0.1)',
-                    borderWidth: 2,
-                    pointRadius: 5,
-                    tension: 0.3
-                }, {
-                    label: 'Smoothed (Holt-Winters)',
-                    data: [...smoothed, ...Array(forecast.length).fill(null)],
-                    borderColor: '#4FD1C5',
-                    backgroundColor: 'rgba(79, 209, 197, 0.1)',
-                    borderWidth: 2,
-                    pointRadius: 3,
-                    tension: 0.3
-                }, {
-                    label: 'Forecast',
-                    data: [...Array(original.length).fill(null), ...forecast],
-                    borderColor: '#FC8181',
-                    backgroundColor: 'rgba(252, 129, 129, 0.1)',
-                    borderWidth: 3,
-                    borderDash: [10, 5],
-                    pointRadius: 6,
-                    pointStyle: 'star',
-                    tension: 0.3
-                }]
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(modalId, event) {
+        if (event && event.target !== event.currentTarget) return;
+        document.getElementById(modalId).classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            closeModal('logsModal');
+            closeModal('rankingsModal');
+        }
+    });
+
+    {% if original and smoothed and forecast %}
+    const ctx = document.getElementById('holtwinters-chart');
+
+    const weeks = {{ weeks| safe }};
+    const original = {{ original| safe }};
+    const smoothed = {{ smoothed| safe }};
+    const forecast = {{ forecast| safe }};
+    const allWeeks = [];
+    weeks.forEach(w => allWeeks.push(w));
+    for (let i = 1; i <= forecast.length; i++) {
+        allWeeks.push((weeks[weeks.length - 1] + i));
+    }
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: allWeeks,
+            datasets: [{
+                label: 'Actual',
+                data: [...original, ...Array(forecast.length).fill(null)],
+                borderColor: '#a855f7',
+                backgroundColor: 'rgba(168, 85, 247, 0.1)',
+                borderWidth: 3,
+                pointRadius: 5,
+                pointBackgroundColor: '#a855f7',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointHoverRadius: 7,
+                tension: 0.4,
+                fill: false
+            }, {
+                label: 'Smoothed',
+                data: [...smoothed, ...Array(forecast.length).fill(null)],
+                borderColor: '#06b6d4',
+                backgroundColor: 'rgba(6, 182, 212, 0.1)',
+                borderWidth: 3,
+                pointRadius: 5,
+                pointBackgroundColor: '#06b6d4',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointHoverRadius: 7,
+                tension: 0.4,
+                fill: false
+            }, {
+                label: 'Forecast',
+                data: [...Array(original.length).fill(null), ...forecast],
+                borderColor: '#ec4899',
+                backgroundColor: 'rgba(236, 72, 153, 0.1)',
+                borderWidth: 3,
+                borderDash: [8, 4],
+                pointRadius: 5,
+                pointBackgroundColor: '#ec4899',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointHoverRadius: 7,
+                pointStyle: 'circle',
+                tension: 0.4,
+                fill: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: true,
-                        position: 'bottom',
-                        labels: {
-                            color: '#000',
-                            font: { size: 12 }
-                        }
-                    },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
-                        backgroundColor: 'rgba(0, 0, 0, 1)',
-                        titleColor: '#fff',
-                        bodyColor: '#fff'
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    align: 'end',
+                    labels: {
+                        color: '#6b7280',
+                        font: {
+                            size: 13,
+                            weight: '500'
+                        },
+                        usePointStyle: true,
+                        pointStyle: 'circle',
+                        padding: 15,
+                        boxWidth: 8,
+                        boxHeight: 8
                     }
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: { color: '#000' },
-                        grid: { color: 'rgba(226, 232, 240, 0.1)' },
-                        title: {
-                            display: true,
-                            text: 'Weekly Attendance Count',
-                            color: '#000'
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                    titleColor: '#1f2937',
+                    bodyColor: '#1f2937',
+                    borderColor: '#d1d5db',
+                    borderWidth: 1,
+                    padding: 12,
+                    displayColors: true,
+                    titleFont: {
+                        size: 13,
+                        weight: '600'
+                    },
+                    bodyFont: {
+                        size: 14,
+                        weight: 'bold'
+                    },
+                    callbacks: {
+                        label: function (context) {
+                            let label = context.dataset.label || '';
+                            if (label) {
+                                label += ': ';
+                            }
+                            if (context.parsed.y !== null) {
+                                label += context.parsed.y;
+                            }
+                            return label;
                         }
-                    },  
-                    x: {
-                        ticks: { color: '#000' },
-                        grid: { color: 'rgba(226, 232, 240, 0.1)' }
                     }
                 }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#6b7280',
+                        font: { size: 12 },
+                        padding: 8
+                    },
+                    grid: {
+                        color: '#e5e7eb',
+                        lineWidth: 1
+                    },
+                    border: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Weekly Attendance Count',
+                        color: '#1f2937',
+                        font: {
+                            size: 13,
+                            weight: '600'
+                        },
+                        padding: { top: 0, bottom: 10 }
+                    }
+                },
+                x: {
+                    min: Math.max(0, allWeeks.length - 10),
+                    max: allWeeks.length - 1,
+                    ticks: {
+                        color: '#6b7280',
+                        font: { size: 11 },
+                        maxRotation: 45,
+                        minRotation: 45,
+                        padding: 10,
+                        autoSkip: true,
+                        maxTicksLimit: 10
+                    },
+                    grid: {
+                        color: '#f3f4f6',
+                        lineWidth: 1
+                    },
+                    border: {
+                        display: false
+                    }
+                }
+            },
+            layout: {
+                padding: {
+                    bottom: 20
+                }
             }
-        });
+        }
+    });
     {% endif %}
-    </script>
+</script>
 
-    <script>
-        // Your existing dropdown script
-        const dropdown = document.querySelector('.dropdown');
-        // ... rest of your script
-    </script>
+<script>
+    const dropdown = document.querySelector('.dropdown');
+</script>
 {%endblock%}

@@ -18,6 +18,20 @@
             </button>
         </div>
 
+        <div class="filters">
+            <div class="filter-group">
+                <label for="departmentFilter">Department</label>
+                <select id="departmentFilter" onchange="filterByDepartment()">
+                    <option value="">All Departments</option>
+                    <option value="information technology">Information Technology</option>
+                    <option value="tourism">Tourism</option>
+                    <option value="business administration">Business Administration</option>
+                    <option value="criminology">Criminology</option>
+                    <option value="basic education">Basic Education</option>
+                </select>
+            </div>
+        </div>
+
         <div class="btns">
             <button class="import-btn" onclick="importAllTeachersExcel()">
                 Import Classes

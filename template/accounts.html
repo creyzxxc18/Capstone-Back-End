@@ -21,7 +21,6 @@
       <span class="material-symbols-outlined">filter_list</span>
       System User
     </button>
-    
 
     <select id="departmentFilter" onchange="filterByDepartment()">
       <option value="">All Departments</option>
@@ -38,9 +37,6 @@
         <span class="material-symbols-outlined">search</span>
       </button>
     </div>
-
-    
-
     <button class="add-teacher-btn" onclick="openModal()">
       <span class="material-symbols-outlined" style="font-size: 16px; margin-right: 5px;">add</span>
       Add User
@@ -49,7 +45,7 @@
     <form id="importUserForm" enctype="multipart/form-data">
         <input type="hidden" name="csrfmiddlewaretoken" value="your-csrf-token">
         <input type="file" id="importUserFile" name="file" accept=".xlsx,.xls" onchange="handleFileSelect(event)">
-        
+
         <label for="importUserFile" class="import-user-btn">
             <span class="material-symbols-outlined">upload_file</span>
             Import Users
@@ -87,8 +83,6 @@
           <th>Name</th>
           <th>Department</th>
           <th>Employment Status</th>
-          <th>Email</th>
-          <th>Contact</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -96,25 +90,19 @@
         {% for professor in professors %}
         <tr data-professor-id="{{ professor.id }}" data-user-type="{{ professor.user_type }}"
           data-first-name="{{ professor.firstName }}" data-mid-name="{{ professor.midName }}"
-          data-last-name="{{ professor.lastName }}" data-email="{{ professor.email }}"
-          data-phone="{{ professor.phoneNumber }}" data-department="{{ professor.department }}"
+          data-last-name="{{ professor.lastName }}"data-department="{{ professor.department }}"
           data-employment-status="{{ professor.employmentStatus }}" data-employ-id="{{ professor.employID }}">
           <td class="employID">{{professor.employID}}</td>
           <td class="user_name">{{ professor.full_name }}</td>
           <td class="user-department">{{ professor.department }}</td>
           <td class="user-employ-status">{{ professor.employmentstatus|default:"Full-time" }}</td>
-          <td class="user-email">{{ professor.email }}</td>
-          <td class="user-phone-number">{{ professor.phoneNumber }}</td>
           <td class="actions">
             <button title="Reset-password"
               onclick="resetPassword('{{professor.id}}', '{{professor.email}}', '{{professor.user_type}}')">
-              <span class="material-symbols-outlined">lock</span>
+              <span class="material-symbols-outlined">encrypted</span>
             </button>
             <button title="Edit-info" class="edit-btn-action">
               <span class="material-symbols-outlined">edit</span>
-            </button>
-            <button title="Delete" onclick="deleteUser('{{ professor.id }}', this)">
-              <span class="material-symbols-outlined">delete</span>
             </button>
           </td>
         </tr>
@@ -128,93 +116,94 @@
   </div>
 {% elif current_filter == 'SystemUser' %}
 <div class="accounts-table SystemUser">
-    <table id="accountsTable">
-      <thead>
-        <tr>
-          <th>Employee ID</th>
-          <th>Name</th>
-          <th>Role</th>
-          <th>Email</th>
-          <th>Contact</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for professor in professors %}
-        <tr 
-          data-professor-id="{{ professor.id }}" 
-          data-user-type="{{ professor.user_type }}"
-          data-first-name="{{ professor.firstName }}" 
-          data-mid-name="{{ professor.midName }}"
-          data-last-name="{{ professor.lastName }}" 
-          data-email="{{ professor.email }}"
-          data-phone="{{ professor.phoneNumber }}" 
-          data-department="{{ professor.department }}"
-          data-employment-status="{{ professor.employmentStatus }}" 
-          data-employ-id="{{ professor.employID }}">
-          <td class="employID">{{professor.employID}}</td>
-          <td class="user_name">{{ professor.full_name }}</td>
-          <td class="user-role">{{ professor.userRole }}</td>
-          <td class="user-email">{{ professor.email }}</td>
-          <td class="user-phone-number">{{ professor.phoneNumber }}</td>
-          <td class="actions">
-            <button title="Reset-password"
-              onclick="resetPassword('{{professor.id}}', '{{professor.email}}', '{{professor.user_type}}')">
-              <span class="material-symbols-outlined">lock</span>
-            </button>
-            <button title="Edit-info" class="edit-btn-action">
-              <span class="material-symbols-outlined">edit</span>
-            </button>
-            <button title="Delete" onclick="deleteUser('{{ professor.id }}', this)">
-              <span class="material-symbols-outlined">delete</span>
-            </button>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="6">No users found</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+  <table id="accountsTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for professor in professors %}
+      <tr data-user-type="{{ professor.user_type }}"
+        data-first-name="{{ professor.firstName }}" data-mid-name="{{ professor.midName }}"
+        data-last-name="{{ professor.lastName }}" data-department="{{ professor.department }}"
+        data-employment-status="{{ professor.employmentStatus }}" data-employ-id="{{ professor.employID }}"
+        data-is-locked="{{ professor.is_locked }}">
+        <td class="user_name">{{ professor.full_name }}</td>
+        <td class="user-role">{{ professor.userRole }}</td>
+        <td class="user-status">
+          {% if professor.is_locked %}
+          <span style="color: #d32f2f; font-weight: bold;">LOCKED</span>
+          {% else %}
+          <span style="color: #2e7d32;">Active</span>
+          {% endif %}
+        </td>
+        <td class="actions">
+          <!-- Unlock/Lock Button -->
+          <button title="{% if professor.is_locked %}Unlock Account{% else %}Account Active{% endif %}"
+            onclick="toggleAccountLock('{{ professor.id }}', {{ professor.is_locked|lower }})" class="lock-toggle-btn"
+            style="background-color: {% if professor.is_locked %}#d32f2f{% else %}#9e9e9e{% endif %};" {% if not professor.is_locked %}disabled{% endif %}>
+            <span class="material-symbols-outlined">
+              {% if professor.is_locked %}lock{% else %}lock_open{% endif %}
+            </span>
+          </button>
+
+          <button title="Reset-password"
+            onclick="resetPassword('{{professor.id}}', '{{professor.email}}', '{{professor.user_type}}')">
+            <span class="material-symbols-outlined">encrypted</span>
+          </button>
+          <button title="Edit-info" class="edit-btn-action">
+            <span class="material-symbols-outlined">edit</span>
+          </button>
+          <button title="Delete" onclick="deleteUser('{{ professor.id }}', this)">
+            <span class="material-symbols-outlined">delete</span>
+          </button>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7">No users found</td> <!-- Update colspan -->
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {%endif%}
-
-
 <!-- Add User Modal -->
 <div class="modal" id="teacherModal">
   <div class="modal-content">
     <h3>Register User</h3>
 
-    <label for="user-type">User Type: <span style="color: red;">*</span></label>
+    <label for="user-type"><span style="color: red;">*</span> User Type:</label>
     <select required id="user-type" onchange="toggleUserTypeFields()">
       <option value="" disabled selected>Select User Type</option>
       <option value="TertiaryFaculty">Tertiary Faculty</option>
       <option value="SystemUser">System User</option>
     </select>
 
-    <label for="employID">Employee ID <span style="color: red;">*</span></label>
+    <label for="employID"><span style="color: red;">*</span> Employee ID</label>
     <input required type="text" id="employID" placeholder="Enter employee ID" maxlength="8" minlength="8">
 
-    <label for="teacherEmail">Email Address<span style="color: red;">*</span></label>
+    <label for="teacherEmail"><span style="color: red;">*</span> Email Address</label>
     <input required type="email" id="teacherEmail" placeholder="Enter email address">
 
-    <label for="teacherFirst">First Name <span style="color: red;">*</span></label>
+    <label for="teacherFirst"><span style="color: red;">*</span> First Name</label>
     <input required type="text" id="teacherFirst" placeholder="Enter first name">
 
     <label for="teacherMiddle">Middle Name (Optional)</label>
     <input type="text" id="teacherMiddle" placeholder="Enter middle name">
 
-    <label for="teacherLast">Last Name <span style="color: red;">*</span></label>
+    <label for="teacherLast"><span style="color: red;">*</span> Last Name</label>
     <input required type="text" id="teacherLast" placeholder="Enter last name">
 
-    <label for="teacherContact">Contact Number <span style="color: red;">*</span></label>
+    <label for="teacherContact"><span style="color: red;">*</span> Contact Number</label>
     <input required type="tel" id="teacherContact" placeholder="Enter contact number" maxlength="11" pattern="[0-9]{11}"
       title="Please enter exactly 11 digits">
-
-
     <div id="facultyFields" style="display: none;">
-      <label for="teacherDept">Department <span style="color: red;">*</span></label>
+      <label for="teacherDept"><span style="color: red;">*</span> Department</label>
       <select required id="teacherDept">
         <option value="" disabled selected>Select Department</option>
         <option value="Information Technology">Information Technology</option>
@@ -222,8 +211,8 @@
         <option value="Business Administration">Business Administration</option>
         <option value="Tourism Management">Tourism Management</option>
         <option value="Basic Education">Basic Education</option>
-      </select>  
-      <label for="employmentStatus">Employment Status <span style="color: red;">*</span></label>
+      </select>
+      <label for="employmentStatus"><span style="color: red;">*</span> Employment Status</label>
       <select id="employmentStatus">
         <option value="" disabled selected>Select Status</option>
         <option value="Regular">Regular</option>
@@ -232,20 +221,16 @@
       </select>
 
     </div>
-
-
-      <div id="systemUserFields" style="display: none;">
-        <label for="userRole">User Role</label>
-        <select id="userRole">
-          <option value="staff/checker">Staff/Checker</option>
-          <option value="admin">Admin</option>
-        </select>
-      </div>
-
-
+    <div id="systemUserFields" style="display: none;">
+      <label for="userRole">User Role</label>
+      <select id="userRole">
+        <option value="staff/checker">Staff/Checker</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
     <div class="modal-actions">
       <button class="cancel-btn" onclick="closeModal()">Cancel</button>
-      <button class="save-btn" onclick="saveTeacher()">Add User</button>
+      <button class="save-btn" id="addUserBtn" onclick="saveTeacher()">Add User</button>
     </div>
     <div style="margin-bottom: 20px;">
 
@@ -317,25 +302,23 @@
   async function handleFileSelect(event) {
     const file = event.target.files[0];
     if (!file) return;
-            
-    // Show selected file name
     const fileSelectedSpan = document.getElementById('fileSelected');
     fileSelectedSpan.textContent = file.name;
     fileSelectedSpan.classList.add('show');
-            
+
     const formData = new FormData();
     formData.append('file', file);
     formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-            
+
     try {
-        // Replace with your actual endpoint
+
         const response = await fetch('/accounts/import-users-excel/', {
             method: 'POST',
             body: formData,
         });
-        
+
         const data = await response.json();
-                
+
         if (data.success) {
             showImportResults(`
                 <p style="color: #28a745; margin-bottom: 10px;">
@@ -344,7 +327,7 @@
                 </p>
                 <small>${data.imported_count} users created${data.skipped_count > 0 ? `, ${data.skipped_count} skipped` : ''}</small>
             `);
-              
+
             setTimeout(() => {
                 location.reload();
             }, 2000);
@@ -364,8 +347,6 @@
             </p>
         `);
     }
-            
-    // Reset file input
     event.target.value = '';
     fileSelectedSpan.classList.remove('show');
   }
@@ -381,8 +362,6 @@
 
   document.addEventListener("DOMContentLoaded", function () {
       initMobileAccordion();
-
-      // Re-initialize on window resize
       let resizeTimer;
       window.addEventListener("resize", function () {
         clearTimeout(resizeTimer);
@@ -396,15 +375,13 @@
       const isMobile = window.innerWidth <= 475;
 
       if (!isMobile) {
-        // Clean up mobile elements if switching to desktop
+
         document.querySelectorAll(".card-header-mobile, .card-details-mobile").forEach(el => el.remove());
         document.querySelectorAll(".accounts-table tbody tr").forEach(row => {
           row.classList.remove("card-expanded");
         });
         return;
       }
-
-      // Process each table row for mobile
       const tables = document.querySelectorAll("#accountsTable");
 
       tables.forEach(table => {
@@ -415,23 +392,19 @@
         const isSystemUser = table.closest('.SystemUser') !== null;
 
         rows.forEach(row => {
-          // Skip if already has mobile structure
+
           if (row.querySelector(".card-header-mobile")) return;
 
           const cells = row.querySelectorAll("td");
           if (cells.length === 0) return;
-
-          // Skip empty rows
           if (cells.length === 1 && cells[0].getAttribute('colspan')) return;
-
-          // Get data from cells - with fallbacks
           const employeeId = cells[0] ? cells[0].textContent.trim() : 'N/A';
           const name = cells[1] ? cells[1].textContent.trim() : 'Unknown User';
 
           let detailsHTML = '';
 
           if (isSystemUser) {
-            // System User table structure (6 columns)
+
             const role = cells[2] ? cells[2].textContent.trim() : 'N/A';
             const email = cells[3] ? cells[3].textContent.trim() : 'N/A';
             const contact = cells[4] ? cells[4].textContent.trim() : 'N/A';
@@ -465,7 +438,7 @@
                     ` : ''}
                 `;
           } else {
-            // Tertiary Faculty table structure (7 columns)
+
             const department = cells[2] ? cells[2].textContent.trim() : 'N/A';
             const employmentStatus = cells[3] ? cells[3].textContent.trim() : 'N/A';
             const email = cells[4] ? cells[4].textContent.trim() : 'N/A';
@@ -504,8 +477,6 @@
                     ` : ''}
                 `;
           }
-
-          // Create mobile card header
           const cardHeader = document.createElement('div');
           cardHeader.className = 'card-header-mobile';
           cardHeader.innerHTML = `
@@ -514,17 +485,11 @@
                     <span class="material-symbols-outlined">expand_more</span>
                 </button>
             `;
-
-          // Create mobile card details
           const cardDetails = document.createElement('div');
           cardDetails.className = 'card-details-mobile';
           cardDetails.innerHTML = detailsHTML;
-
-          // Insert at the beginning of the row
           row.insertBefore(cardHeader, row.firstChild);
           row.insertBefore(cardDetails, cardHeader.nextSibling);
-
-          // Add click event to toggle
           const toggleBtn = cardHeader.querySelector('.mobile-toggle-btn');
 
           function toggleCard() {
@@ -535,8 +500,6 @@
             e.stopPropagation();
             toggleCard();
           });
-
-          // Make entire header clickable
           cardHeader.addEventListener('click', function (e) {
             if (e.target !== toggleBtn && !toggleBtn.contains(e.target)) {
               toggleCard();

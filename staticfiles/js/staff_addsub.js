@@ -746,3 +746,29 @@ function submitEditClass(event) {
             alert("Error updating class.");
         });
 }
+
+function filterByDepartment() {
+    const departmentFilter = document.getElementById('departmentFilter').value.toLowerCase();
+    const tbody = document.querySelector('#professorTable tbody');
+    const rows = tbody.getElementsByTagName('tr');
+
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+
+        if (row.querySelector('td[colspan]')) {
+            continue;
+        }
+
+        const departmentCell = row.querySelector('.user-department');
+
+        if (departmentCell) {
+            const department = departmentCell.textContent || departmentCell.innerText;
+
+            if (departmentFilter === '' || department.toLowerCase().indexOf(departmentFilter) > -1) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    }
+}

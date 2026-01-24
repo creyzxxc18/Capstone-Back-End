@@ -40,25 +40,42 @@ async function enrichClassesWithTeacherNames(classes) {
     console.log(`📋 Found ${teacherIds.length} unique teachers:`, teacherIds);
 
     const teacherMap = {};
+    const activeTeachers = new Set();
+
     for (const teacherId of teacherIds) {
         try {
             const response = await fetch(`get_user_profile/?uid=${teacherId}`);
             const data = await response.json();
             if (data.success && data.user) {
                 const user = data.user;
-                const firstName = user.firstName || '';
-                const midName = user.midName || '';
-                const lastName = user.lastName || '';
-                const middleInitial = midName ? ` ${midName[0]}.` : '';
-                teacherMap[teacherId] = `${firstName}${middleInitial} ${lastName}`.trim();
-                console.log(`✅ Teacher ${teacherId}: ${teacherMap[teacherId]}`);
+
+
+                const isActive = user.isActive !== false;
+
+                if (isActive) {
+                    const firstName = user.firstName || '';
+                    const midName = user.midName || '';
+                    const lastName = user.lastName || '';
+                    const middleInitial = midName ? ` ${midName[0]}.` : '';
+                    teacherMap[teacherId] = `${firstName}${middleInitial} ${lastName}`.trim();
+                    activeTeachers.add(teacherId);
+                    console.log(`✅ Active Teacher ${teacherId}: ${teacherMap[teacherId]}`);
+                } else {
+                    console.log(`🚫 Archived Teacher ${teacherId} - EXCLUDED from calendar`);
+                }
             }
         } catch (err) {
             console.warn(`⚠️ Could not fetch teacher name for ${teacherId}`);
         }
     }
 
-    const enrichedClasses = classes.map(cls => ({
+
+    const activeClasses = classes.filter(cls => activeTeachers.has(cls.teacherUid));
+
+    console.log(`📊 Filtered: ${classes.length} total classes → ${activeClasses.length} active classes`);
+    console.log(`🚫 Excluded ${classes.length - activeClasses.length} classes from archived users`);
+
+    const enrichedClasses = activeClasses.map(cls => ({
         ...cls,
         teacher_name: teacherMap[cls.teacherUid] || cls.teacher_name || cls.teacherUid
     }));
@@ -82,7 +99,7 @@ async function loadCalendarSchedules() {
     const todayDayName = today.toLocaleDateString('en-US', { weekday: 'long' });
     const todayYear = today.getFullYear();
     const todayMonth = today.getMonth() + 1;
-    
+
     if (todayYear === currentYear && todayMonth === currentMonth) {
         const todayCell = document.querySelector(`td[data-date="${todayStr}"]`);
         if (todayCell) {
@@ -90,7 +107,7 @@ async function loadCalendarSchedules() {
             todayCell.style.fontWeight = 'bold';
             todayCell.style.backgroundColor = '#9db5ebff';
         }
-        
+
         showDaySchedule(todayDayName, todayStr);
     }
 }
@@ -366,12 +383,12 @@ async function displayFilteredResults(teachers) {
         scheduleList.innerHTML = `<p style="text-align:center;color:#94a3b8;padding:20px;">No results found</p>`;
         if (resultsCount) resultsCount.textContent = 'No results';
 
-        
+
         if (selectedDate) {
             addDayStatusButtons(scheduleList);
         }
 
-        stopStatusAutoRefresh(); 
+        stopStatusAutoRefresh();
         return;
     }
 
@@ -380,18 +397,18 @@ async function displayFilteredResults(teachers) {
         resultsCount.textContent = `Showing ${teachers.length} teacher${teachers.length > 1 ? 's' : ''} with ${totalClasses} class${totalClasses > 1 ? 'es' : ''}`;
     }
 
-    
+
     for (const teacher of teachers) {
         const card = await createTeacherCard(teacher);
         scheduleList.appendChild(card);
     }
 
-    
+
     if (selectedDate) {
         addDayStatusButtons(scheduleList);
     }
 
-    
+
     startStatusAutoRefresh();
 }
 
@@ -563,7 +580,7 @@ function parseTimeToMinutes(timeStr) {
     if (!timeStr) return null;
 
     try {
-        
+
         const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
         if (!match) return null;
 
@@ -571,7 +588,7 @@ function parseTimeToMinutes(timeStr) {
         const minutes = parseInt(match[2]);
         const period = match[3].toUpperCase();
 
-        
+
         if (period === 'PM' && hours !== 12) {
             hours += 12;
         } else if (period === 'AM' && hours === 12) {
@@ -599,16 +616,16 @@ if (!document.getElementById('status-indicator-styles')) {
 }
 
 function startStatusAutoRefresh() {
-    
+
     if (statusRefreshInterval) {
         clearInterval(statusRefreshInterval);
     }
 
-    
+
     statusRefreshInterval = setInterval(() => {
         console.log('🔄 Auto-refreshing status indicators...');
         refreshAllStatusIndicators();
-    }, 30000); 
+    }, 30000);
 
     console.log('✅ Status auto-refresh started (every 30 seconds)');
 }
@@ -626,18 +643,18 @@ async function refreshAllStatusIndicators() {
         return;
     }
 
-    
+
     for (const teacher of currentProfessors) {
         await updateTeacherCardStatus(teacher.teacherUid, teacher.classes);
     }
 }
 
 async function updateTeacherCardStatus(teacherUid, classes) {
-    
+
     const cards = document.querySelectorAll('.professor-schedule-card');
 
     for (const card of cards) {
-        
+
         if (card.dataset.teacherUid !== teacherUid) {
             continue;
         }
@@ -647,10 +664,10 @@ async function updateTeacherCardStatus(teacherUid, classes) {
 
         if (!statusIndicator || !statusText) continue;
 
-        
+
         const status = await getTeacherAttendanceStatus(teacherUid, classes, selectedDate);
 
-        
+
         statusIndicator.style.background = status.color;
         statusIndicator.style.boxShadow = `0 0 8px ${status.color}`;
         statusIndicator.title = status.message;
@@ -661,7 +678,7 @@ async function updateTeacherCardStatus(teacherUid, classes) {
             statusIndicator.style.animation = 'none';
         }
 
-        
+
         statusText.textContent = status.message;
 
         console.log(`✅ Updated status for ${teacherUid}: ${status.message}`);
@@ -683,7 +700,7 @@ async function showTeacherScheduleModal(teacher) {
         document.body.appendChild(modal);
     }
 
-    
+
     let hasLeaveStatus = false;
     if (teacher.classes && teacher.classes.length > 0) {
         for (const cls of teacher.classes) {
@@ -795,7 +812,7 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
     console.log('   Teacher UID:', teacherUid);
     console.log('   Selected Date:', selectedDate);
 
-    
+
     const NOW = new Date();
     const NOW_TIME_MINUTES = NOW.getHours() * 60 + NOW.getMinutes();
     console.log('   🕐 Current Time:', NOW.toLocaleTimeString(), `(${NOW_TIME_MINUTES} minutes)`);
@@ -816,7 +833,7 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
 
     const attendance = await fetchAttendanceForClass(cls.id, teacherUid, selectedDate);
 
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const selectedDateObj = new Date(selectedDate + 'T00:00:00');
@@ -829,7 +846,7 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
     const hasTimeOut = attendance?.timeOutImageUrl;
     const bothComplete = hasTimeIn && hasTimeOut;
 
-    
+
     let classHasPassed = false;
     let classEndTimeMinutes = null;
 
@@ -847,6 +864,7 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
     }
 
     const isAbsent = (isPast || (isToday && classHasPassed)) && !hasTimeIn;
+    const isIncomplete = hasTimeIn && !hasTimeOut;
     const isPending = (isFuture || (isToday && !classHasPassed)) && !hasTimeIn && !hasTimeOut;
 
     console.log('   📊 Final Status:');
@@ -857,6 +875,7 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
     console.log('      - Has Time In?', hasTimeIn);
     console.log('      - Has Time Out?', hasTimeOut);
     console.log('      - IS ABSENT?', isAbsent);
+    console.log('      - IS INCOMPLETE?', isIncomplete);
     console.log('      - IS PENDING?', isPending);
 
     const isValidated = attendance?.remarks !== null && attendance?.remarks !== undefined;
@@ -990,7 +1009,7 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
             <div class="attendance-section">
                 <div style="text-align: center; margin-bottom: 12px;">
                     <div style="
-                        background: ${isPending ? '#94a3b8' : isAbsent ? '#ef4444' : '#3b82f6'};
+                        background: ${isPending ? '#94a3b8' : isAbsent ? '#ef4444' : isIncomplete ? '#f59e0b' : '#3b82f6'};
                         color: white;
                         padding: 8px 16px;
                         border-radius: 6px;
@@ -1025,7 +1044,7 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
             <div class="attendance-section">
                 <div style="text-align: center; margin-bottom: 12px;">
                     <div style="
-                        background: ${isPending ? '#94a3b8' : isAbsent ? '#ef4444' : '#ef4444'};
+                        background: ${isPending ? '#94a3b8' : isAbsent ? '#ef4444' : isIncomplete ? '#f59e0b' : '#ef4444'};
                         color: white;
                         padding: 8px 16px;
                         border-radius: 6px;
@@ -1033,17 +1052,17 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
                         font-size: 14px;
                         display: inline-block;
                     ">
-                        Time Out: ${isPending ? '---' : isAbsent ? 'ABSENT' : timeOutActual}
+                        Time Out: ${isPending ? '---' : isAbsent ? 'ABSENT' : isIncomplete ? 'PENDING' : timeOutActual}
                     </div>
                 </div>
                 
                 <div class="image-container" style="
                     width: 100%;
                     height: 200px;
-                    border: 2px solid ${isPending ? '#cbd5e0' : isAbsent ? '#ef4444' : '#e2e8f0'};
+                    border: 2px solid ${isPending ? '#cbd5e0' : isAbsent ? '#ef4444' : isIncomplete ? '#fbbf24' : '#e2e8f0'};
                     border-radius: 8px;
                     overflow: hidden;
-                    background: ${isPending ? '#f1f5f9' : isAbsent ? '#fee2e2' : '#f8fafc'};
+                    background: ${isPending ? '#f1f5f9' : isAbsent ? '#fee2e2' : isIncomplete ? '#fef3c7' : '#f8fafc'};
                     display: flex;
                     align-items: center;
                     justify-content: center;
@@ -1071,6 +1090,22 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
                         font-size: 14px;
                     ">
                         ${isToday ? 'Class in progress - waiting for completion' : 'Scheduled for future date'}
+                    </div>
+                </div>
+            ` : isIncomplete ? `
+                <!-- Incomplete Status Message -->
+                <div style="text-align: center;">
+                    <div style="
+                        display: inline-block;
+                        padding: 12px 24px;
+                        background: #fef3c7;
+                        border-radius: 6px;
+                        color: #92400e;
+                        font-weight: 600;
+                        font-size: 14px;
+                        border: 2px solid #fbbf24;
+                    ">
+                        ⏳ Waiting for Time Out - Teacher has timed in but not yet timed out
                     </div>
                 </div>
             ` : isAbsent && !lateReasons ? `
@@ -1234,9 +1269,10 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
                 font-weight: 600;
                 background: ${lateReasons ? '#fef3c7' :
             isAbsent ? (isCompensated ? '#d1fae5' : '#fee2e2') :
-                validationStatus === 'approved' ? '#d1fae5' :
-                    validationStatus === 'declined' ? '#fee2e2' :
-                        isPending ? '#fef3c7' : '#d1fae5'
+                isIncomplete ? '#fef3c7' :
+                    validationStatus === 'approved' ? '#d1fae5' :
+                        validationStatus === 'declined' ? '#fee2e2' :
+                            isPending ? '#fef3c7' : '#d1fae5'
         };
                 color: ${lateReasons ? '#92400e' :
             isAbsent ? (isCompensated ? '#065f46' : '#991b1b') :
@@ -1247,8 +1283,9 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
             ">
                 ${lateReasons ? lateReasons.toUpperCase() :
             isAbsent ? (isCompensated ? 'ABSENT (COMPENSATED)' : 'ABSENT') :
-                validationStatus ? validationStatus.toUpperCase() :
-                    isPending ? 'PENDING' : 'PRESENT'
+                isIncomplete ? 'INCOMPLETE - WAITING FOR TIME OUT' :
+                    validationStatus ? validationStatus.toUpperCase() :
+                        isPending ? 'PENDING' : 'PRESENT'
         }
             </span>
         </div>
@@ -1260,7 +1297,7 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
 function showCompensationInput(classId, attendanceId, teacherUid, date) {
     console.log('🎯 Showing compensation input for class:', classId);
 
-    
+
     const buttonDiv = document.getElementById(`compensationButton_${classId}`);
     const inputDiv = document.getElementById(`compensationInput_${classId}`);
 
@@ -1268,7 +1305,7 @@ function showCompensationInput(classId, attendanceId, teacherUid, date) {
         buttonDiv.style.display = 'none';
         inputDiv.style.display = 'block';
 
-        
+
         const textarea = document.getElementById(`compensationNote_${classId}`);
         if (textarea) {
             textarea.focus();
@@ -1279,7 +1316,7 @@ function showCompensationInput(classId, attendanceId, teacherUid, date) {
 function cancelCompensationInput(classId) {
     console.log('❌ Canceling compensation input for class:', classId);
 
-    
+
     const buttonDiv = document.getElementById(`compensationButton_${classId}`);
     const inputDiv = document.getElementById(`compensationInput_${classId}`);
 
@@ -1287,7 +1324,7 @@ function cancelCompensationInput(classId) {
         buttonDiv.style.display = 'block';
         inputDiv.style.display = 'none';
 
-        
+
         const textarea = document.getElementById(`compensationNote_${classId}`);
         if (textarea) {
             textarea.value = '';
@@ -1305,7 +1342,7 @@ async function submitCompensation(classId, attendanceId, teacherUid, date) {
     console.log('📝 Date:', date);
 
     try {
-        
+
         if (!attendanceId) {
             console.log('⚠️ No attendance ID, creating new record...');
 
@@ -1338,7 +1375,7 @@ async function submitCompensation(classId, attendanceId, teacherUid, date) {
 
         console.log('📤 Sending compensation request...');
 
-        
+
         const response = await fetch('/mark_compensated/', {
             method: 'POST',
             headers: {
@@ -1366,14 +1403,14 @@ async function submitCompensation(classId, attendanceId, teacherUid, date) {
         if (data.success) {
             alert('✅ Marked as compensated');
 
-            
+
             const teacher = currentProfessors.find(t => t.teacherUid === teacherUid);
 
-            
+
             closeTeacherScheduleModal();
 
             if (teacher) {
-                
+
                 setTimeout(() => {
                     showTeacherScheduleModal(teacher);
                 }, 100);
@@ -1419,11 +1456,11 @@ async function removeCompensation(attendanceId) {
         if (data.success) {
             alert('✅ Compensation removed');
 
-            
+
             closeTeacherScheduleModal();
 
             if (currentModalTeacher) {
-                
+
                 setTimeout(() => {
                     showTeacherScheduleModal(currentModalTeacher);
                 }, 100);
@@ -1461,7 +1498,7 @@ async function clearAllClassesLeave(teacherUid) {
             const count = data.clearedCount || 0;
             alert(`✅ ${count} class(es) leave status cleared`);
 
-            
+
             closeTeacherScheduleModal();
             const teacher = currentProfessors.find(t => t.teacherUid === teacherUid);
             if (teacher) {
@@ -1510,10 +1547,10 @@ async function markAllClassesLeave(teacherUid, date) {
             const count = data.updatedCount || 0;
             alert(`✅ ${count} class(es) marked as ${leaveReason}`);
 
-            
+
             selectElement.value = '';
 
-            
+
             applyFilters();
         } else {
             alert('❌ Error: ' + data.error);
@@ -1557,7 +1594,7 @@ async function markAllClassesLeaveFromModal(teacherUid) {
             const count = data.updatedCount || 0;
             alert(`✅ ${count} class(es) marked as ${leaveReason}`);
 
-            
+
             closeTeacherScheduleModal();
             const teacher = currentProfessors.find(t => t.teacherUid === teacherUid);
             if (teacher) {
@@ -1586,7 +1623,7 @@ async function markTeacherLeave(attendanceId, classId, teacherUid, date) {
     }
 
     try {
-        
+
         if (!attendanceId) {
             const createResponse = await fetch('/create_attendance/', {
                 method: 'POST',
@@ -1612,7 +1649,7 @@ async function markTeacherLeave(attendanceId, classId, teacherUid, date) {
             }
         }
 
-        
+
         const response = await fetch('/mark_teacher_leave/', {
             method: 'POST',
             headers: {
@@ -1630,7 +1667,7 @@ async function markTeacherLeave(attendanceId, classId, teacherUid, date) {
         if (data.success) {
             alert(`✅ Teacher marked as ${leaveReason}`);
 
-            
+
             closeTeacherScheduleModal();
             const teacherName = document.getElementById('modalTeacherName')?.textContent;
             const teacher = currentProfessors.find(t => t.teacher_name === teacherName);
@@ -1673,7 +1710,7 @@ async function clearTeacherLeave(attendanceId) {
         if (data.success) {
             alert('✅ Leave status cleared');
 
-            
+
             closeTeacherScheduleModal();
             const teacherName = document.getElementById('modalTeacherName')?.textContent;
             const teacher = currentProfessors.find(t => t.teacher_name === teacherName);
@@ -1737,7 +1774,7 @@ async function validateAttendance(attendanceId, isApproved) {
         if (!confirm(`Are you sure you want to ${isApproved ? 'approve' : 'decline'} this attendance?`)) {
             return;
         }
-        
+
         const response1 = await fetch('validate_attendance/', {
             method: 'POST',
             headers: {
@@ -1756,7 +1793,7 @@ async function validateAttendance(attendanceId, isApproved) {
         if (data.success) {
             alert(`✅ Attendance ${isApproved ? 'approved' : 'declined'} successfully!`);
 
-            
+
             closeTeacherScheduleModal();
             const teacherName = document.getElementById('modalTeacherName')?.textContent;
             const teacher = currentProfessors.find(t => t.teacher_name === teacherName);
@@ -1780,26 +1817,26 @@ async function validateAttendanceSingle(attendanceId, isApproved) {
 
         console.log('🔍 Validating attendance:', attendanceId, isApproved);
 
-        
+
         const clickedButton = event?.target;
         const buttonContainer = clickedButton?.parentElement;
         const allButtons = buttonContainer?.querySelectorAll('button') || [];
 
-        
+
         allButtons.forEach(btn => {
             btn.disabled = true;
             btn.style.opacity = '0.6';
             btn.style.cursor = 'not-allowed';
-            btn.style.pointerEvents = 'none'; 
+            btn.style.pointerEvents = 'none';
         });
 
-        
+
         if (clickedButton) {
             const originalText = clickedButton.textContent;
             clickedButton.textContent = isApproved ? '⏳ Approving...' : '⏳ Declining...';
         }
 
-        
+
         const response = await fetch('/validate_attendance/', {
             method: 'POST',
             headers: {
@@ -1816,10 +1853,10 @@ async function validateAttendanceSingle(attendanceId, isApproved) {
         console.log('✅ Validation response:', data);
 
         if (data.success) {
-            
+
             alert(`✅ Attendance ${isApproved ? 'approved' : 'declined'} successfully!`);
 
-            
+
             const modal = document.getElementById('teacherScheduleModal');
             const modalHeader = modal?.querySelector('.modal-header-content h2');
             const teacherName = modalHeader?.textContent?.trim();
@@ -1827,19 +1864,19 @@ async function validateAttendanceSingle(attendanceId, isApproved) {
             console.log('🔍 Looking for teacher:', teacherName);
             console.log('📋 Available teachers:', currentProfessors.map(t => t.teacher_name));
 
-            
+
             const teacher = currentProfessors.find(t => t.teacher_name === teacherName);
 
             if (teacher) {
                 console.log('✅ Found teacher, refreshing modal...');
 
-                
+
                 closeTeacherScheduleModal();
 
-                
+
                 await new Promise(resolve => setTimeout(resolve, 200));
 
-                
+
                 await showTeacherScheduleModal(teacher);
 
             } else {
@@ -1848,10 +1885,10 @@ async function validateAttendanceSingle(attendanceId, isApproved) {
             }
 
         } else {
-            
+
             alert('❌ Error: ' + (data.error || 'Unknown error'));
 
-            
+
             allButtons.forEach(btn => {
                 btn.disabled = false;
                 btn.style.opacity = '1';
@@ -1859,7 +1896,7 @@ async function validateAttendanceSingle(attendanceId, isApproved) {
                 btn.style.pointerEvents = 'auto';
             });
 
-            
+
             if (clickedButton) {
                 clickedButton.textContent = isApproved ? 'Approve' : 'Decline';
             }
@@ -1869,7 +1906,7 @@ async function validateAttendanceSingle(attendanceId, isApproved) {
         console.error('❌ Validation error:', err);
         alert('Error validating attendance: ' + err.message);
 
-        
+
         window.location.reload();
     }
 }
@@ -2051,40 +2088,79 @@ function applyStatusColors() {
     const today = new Date();
     const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
 
+    console.log('🎨 Applying status colors...');
+    console.log('   Today:', todayStr);
+    console.log('   Month statuses:', monthStatuses);
+
     calendarDays.forEach(td => {
         const dateStr = td.getAttribute('data-date');
         if (!dateStr) return;
 
-        
+
         td.style.backgroundColor = '';
-        td.style.color = '';  
+        td.style.color = '';
+        td.removeAttribute('data-status');
 
         const cellDate = new Date(dateStr + 'T00:00:00');
         const todayDate = new Date(todayStr + 'T00:00:00');
         const isPastDate = cellDate < todayDate;
+        const isTodayDate = dateStr === todayStr;
         const isFutureDate = cellDate > todayDate;
 
-        
+
         if (monthStatuses[dateStr]) {
             const status = monthStatuses[dateStr].status;
-            if (status === 'suspended') {
-                td.style.backgroundColor = '#ff6b6b';  
+
+            if (status === 'holiday') {
+                console.log(`   🎉 ${dateStr} = HOLIDAY`);
+                td.setAttribute('data-status', 'holiday');
+                td.style.backgroundColor = '#11c7118b';
                 td.style.color = 'black';
-            } else if (status === 'holiday') {
-                td.style.backgroundColor = '#11c7118b';  
-                td.style.color = 'black';
+                td.style.fontWeight = 'bold';
+
+
+                if (isTodayDate) {
+                    td.style.border = '2px solid #059669';
+                }
+                return;
             }
-        } else if (isPastDate) {
-            td.style.backgroundColor = '#e2e8f0';  
-            td.style.color = '#000000ff';
-        } else if (isFutureDate) {
-            td.style.backgroundColor = '#eff6ff';  
+            else if (status === 'suspended') {
+                console.log(`   ⚠️ ${dateStr} = SUSPENDED`);
+                td.setAttribute('data-status', 'suspended');
+                td.style.backgroundColor = '#ff6b6b';
+                td.style.color = 'black';
+                td.style.fontWeight = 'bold';
+
+
+                if (isTodayDate) {
+                    td.style.border = '2px solid #dc2626';
+                }
+                return;
+            }
+        }
+
+
+        if (isPastDate) {
+            console.log(`   📅 ${dateStr} = PAST`);
+            td.style.backgroundColor = '#e2e8f0';
             td.style.color = '#64748b';
-        } else {
-            
-            td.style.color = '#000000';
+            td.style.opacity = '0.6';
+        }
+        else if (isTodayDate) {
+            console.log(`   📍 ${dateStr} = TODAY`);
+            td.style.backgroundColor = '#9db5ebff';
+            td.style.color = 'black';
+            td.style.fontWeight = 'bold';
+            td.style.border = '2px solid #2563eb';
+        }
+        else if (isFutureDate) {
+            console.log(`   ⏭️ ${dateStr} = FUTURE`);
+            td.style.backgroundColor = '#eff6ff';
+            td.style.color = '#64748b';
         }
     });
+
+    console.log('✅ Status colors applied!');
 }
 
 function addDayStatusButtons(container) {
@@ -2093,7 +2169,7 @@ function addDayStatusButtons(container) {
         return;
     }
 
-    
+
     const existingButtons = document.getElementById('dayStatusButtons');
     if (existingButtons) {
         existingButtons.remove();
@@ -2112,11 +2188,11 @@ function addDayStatusButtons(container) {
         border-top: 2px solid #e2e8f0;
     `;
 
-    
+
     const currentStatus = monthStatuses[selectedDate];
 
     if (currentStatus) {
-        
+
         const clearBtn = document.createElement('button');
         clearBtn.textContent = `Clear ${currentStatus.status.toUpperCase()} Status`;
         clearBtn.style.cssText = `
@@ -2136,7 +2212,7 @@ function addDayStatusButtons(container) {
 
         buttonContainer.appendChild(clearBtn);
     } else {
-        
+
         const holidayBtn = document.createElement('button');
         holidayBtn.textContent = '🏖️ Mark as Holiday';
         holidayBtn.style.cssText = `
@@ -2175,7 +2251,7 @@ function addDayStatusButtons(container) {
         buttonContainer.appendChild(suspendBtn);
     }
 
-    
+
     try {
         container.appendChild(buttonContainer);
     } catch (error) {
@@ -2259,13 +2335,13 @@ async function clearDayStatus() {
         if (data.success) {
             alert('✅ Day status cleared');
 
-            
+
             delete monthStatuses[selectedDate];
 
-            
+
             applyStatusColors();
 
-            
+
             applyFilters();
         } else {
             alert('❌ Error: ' + data.error);

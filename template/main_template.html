@@ -20,7 +20,7 @@
   <div class="header">
     <div class="header-left">
       <img src="{% static 'images/college-dept-logo-2.png' %}">
-      <h2>CSCQC</h2>
+      <h2>CSCQC | <span id="current-date-time"></span></h2>
     </div>
 
     <div class="header-right">
@@ -167,7 +167,7 @@
         clearTimeout(closeTimeout);
       });
     }
-  
+
     function toggleSidebar() {
         document.querySelector(".sidebar").classList.toggle("open");
       }
@@ -181,10 +181,54 @@
       }
 
       function confirmLogout() {
-        // Set session flag before logout
-        sessionStorage.setItem('loggedOut', 'true');
-        document.getElementById('logout-form').submit();
-      }
+
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          localStorage.removeItem('user_data');
+          sessionStorage.setItem('loggedOut', 'true');
+          closeLogoutModal();
+          fetch("{% url 'logout' %}", {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': getCsrfToken(),
+              'Content-Type': 'application/json',
+            },
+          }).finally(() => {
+
+            window.location.replace('/login/');
+          });
+        }
+
+        function getCsrfToken() {
+          const cookies = document.cookie.split(';');
+          for (let cookie of cookies) {
+            const [name, value] = cookie.trim().split('=');
+            if (name === 'csrftoken') {
+              return value;
+            }
+          }
+          return '';
+        }
+
+        function updateDateTime() {
+            const now = new Date();
+            const dateString = now.toLocaleDateString('en-US', {
+              weekday: 'long',
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric'
+            });
+            const timeString = now.toLocaleTimeString('en-US', {
+              hour: '2-digit',
+              minute: '2-digit',
+              hour12: true
+            });
+            document.getElementById('current-date-time').textContent = `${dateString}, ${timeString}`;
+          }
+
+
+          updateDateTime();
+          setInterval(updateDateTime, 1000);
   </script>
 </body>
 {% block script_content%}

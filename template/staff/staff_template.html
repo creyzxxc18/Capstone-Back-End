@@ -21,7 +21,7 @@
     <div class="header">
         <div class="header-left">
             <img src="{% static 'images/college-dept-logo-2.png' %}" alt="Logo">
-            <h2>CSCQC</h2>
+            <h2>CSCQC | <span id="current-date-time"></span></h2>
         </div>
 
         <div class="header-right">
@@ -118,10 +118,40 @@
             }
 
             function confirmLogout() {
-                // Set session flag before logout
-                sessionStorage.setItem('loggedOut', 'true');
-                document.getElementById('logout-form').submit();
-            }
+                    // Clear JWT tokens
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    localStorage.removeItem('user_data');
+
+                    // Set session flag for logout success message
+                    sessionStorage.setItem('loggedOut', 'true');
+
+                    // Close the modal
+                    closeLogoutModal();
+
+                    // Call backend logout endpoint to invalidate session
+                    fetch("{% url 'logout' %}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': getCsrfToken(),
+                            'Content-Type': 'application/json',
+                        },
+                    }).finally(() => {
+                        // Redirect to login page
+                        window.location.replace('/login/');
+                    });
+                }
+
+                function getCsrfToken() {
+                    const cookies = document.cookie.split(';');
+                    for (let cookie of cookies) {
+                        const [name, value] = cookie.trim().split('=');
+                        if (name === 'csrftoken') {
+                            return value;
+                        }
+                    }
+                    return '';
+                }
     </script>
 </body>
 {% block script_content%}

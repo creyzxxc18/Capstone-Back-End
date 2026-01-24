@@ -1,5 +1,8 @@
 from django.urls import path
 from .. import views
+from rest_framework_simplejwt.views import TokenRefreshView
+from applications.views.serializers import CustomTokenObtainPairView
+from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
     # ADMIN URLS
@@ -14,4 +17,6 @@ urlpatterns = [
     path('change-password-first-login/', views.change_password_first_login, name='change_password_first_login'),
     path("api/request-password-reset/", views.RequestPasswordResetView.as_view(), name="request_password_reset"),
     path("api/reset-password/", views.ResetPasswordView.as_view(), name="reset_password"),
+    path('api/token/', csrf_exempt(CustomTokenObtainPairView.as_view()), name='token_obtain_pair'),
+    path('api/token/refresh/', csrf_exempt(TokenRefreshView.as_view()), name='token_refresh'),
 ]

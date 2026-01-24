@@ -37,6 +37,9 @@ class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     employId = models.CharField(unique=True, max_length=30, null=True, blank=True)
     isFirstLogin = models.BooleanField(default=True)
+    is_locked = models.BooleanField(default=False)
+    locked_at = models.DateTimeField(null=True, blank=True)
+    failed_login_attempts = models.IntegerField(default=0)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["username", "first_name", "last_name"]
@@ -46,13 +49,13 @@ class CustomUser(AbstractUser):
 
 
 class Profile(models.Model):
-    
+
     userRoleChoice = [
         ("staff/checker", "Staff/Checker"),
         ("admin", "Admin"),
     ]
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    
+
     userRole = models.CharField(
         max_length=15, choices=userRoleChoice, default="staff/checker"
     )
@@ -91,10 +94,10 @@ class Course(models.Model):
 @receiver(post_save, sender=CustomUser)
 def manage_user_profile(sender, instance, created, **kwargs):
     if created:
-        
+
         role = "admin" if instance.is_superuser else "staff/checker"
         Profile.objects.create(user=instance, userRole=role)
     else:
-        
+
         if hasattr(instance, "profile"):
             instance.profile.save()

@@ -2,8 +2,6 @@ const modal = document.getElementById("teacherModal");
 const table = document.getElementById("accountsTable").getElementsByTagName("tbody")[0];
 
 let isSubmittingUser = false;
-
-
 document.addEventListener('DOMContentLoaded', function () {
   const contactInput = document.getElementById('teacherContact');
   const editContactInput = document.getElementById('editTeacherContact');
@@ -43,14 +41,10 @@ const userTypeSelect = document.getElementById("user-type");
 if (employIDInput) {
   employIDInput.addEventListener("input", async function () {
     const employID = employIDInput.value.trim();
-
-
     employIDInput.classList.remove("input-error");
     removeEmployIdErrorMessage();
 
     if (!employID || employID.length < 3) return;
-
-
     if (userTypeSelect.value !== "TertiaryFaculty" && userTypeSelect.value !== "SystemUser") return;
 
     try {
@@ -67,8 +61,6 @@ if (employIDInput) {
     }
   });
 }
-
-
 function showEmployIdErrorMessage(message) {
   let errorLabel = document.getElementById("employID-error");
 
@@ -83,8 +75,6 @@ function showEmployIdErrorMessage(message) {
 
   errorLabel.textContent = message;
 }
-
-
 function removeEmployIdErrorMessage() {
   const errorLabel = document.getElementById("employID-error");
   if (errorLabel) errorLabel.remove();
@@ -118,8 +108,6 @@ document.addEventListener('click', function (e) {
     editProfessor(id, firstName, midName, lastName, email, phoneNumber, department, employmentStatus, employID, userType);
   }
 });
-
-
 function toggleUserTypeFields() {
   const userType = document.getElementById('user-type').value;
   const facultyFields = document.getElementById('facultyFields');
@@ -174,8 +162,6 @@ function editProfessor(id, firstName, midName, lastName, email, phoneNumber, dep
     id, firstName, midName, lastName, email, phoneNumber,
     department, employmentStatus, employID, userType
   });
-
-
   document.getElementById('editTeacherId').value = id || '';
   document.getElementById('editUserType').value = userType || '';
   document.getElementById('editTeacherFirst').value = firstName || '';
@@ -237,8 +223,6 @@ if (editEmployIDInput) {
     }
   });
 }
-
-
 function showEditEmployIdError(message) {
   let error = document.getElementById("editEmployID-error");
 
@@ -345,16 +329,12 @@ async function updateTeacher() {
       alert("Error updating user");
     });
 }
-
-
 async function saveTeacher() {
 
   if (isSubmittingUser) return;
 
   const addBtn = document.getElementById("addUserBtn");
   isSubmittingUser = true;
-
-
   addBtn.disabled = true;
   addBtn.style.pointerEvents = "none";
   addBtn.innerHTML = `
@@ -372,9 +352,6 @@ async function saveTeacher() {
     const userType = document.getElementById("user-type").value;
     const employID = document.getElementById("employID").value.trim();
     const userRole = document.getElementById("userRole").value;
-
-
-
     if (!userType) {
       alert("Please select a user type");
       resetAddUserButton();
@@ -386,16 +363,11 @@ async function saveTeacher() {
       resetAddUserButton();
       return;
     }
-
-
     if (document.querySelector(".input-error")) {
       alert("Please fix the highlighted errors before submitting.");
       resetAddUserButton();
       return;
     }
-
-
-
     const requestBody = {
       first_name: firstName,
       midName: midName,
@@ -407,8 +379,6 @@ async function saveTeacher() {
       userRole: userRole,
       employID: employID,
     };
-
-
     if (userType === "TertiaryFaculty") {
       const employmentStatus = document.getElementById("employmentStatus").value;
 
@@ -427,9 +397,6 @@ async function saveTeacher() {
       requestBody.employmentStatus = employmentStatus;
       requestBody.password = "cscqcApp123";
     }
-
-
-
     const response = await fetch("/accounts/register/", {
       method: "POST",
       headers: {
@@ -448,8 +415,6 @@ async function saveTeacher() {
       alert(
         `${userType === "SystemUser" ? "System User" : "Tertiary Faculty"} added successfully!`
       );
-
-
       document.getElementById("teacherFirst").value = "";
       document.getElementById("teacherMiddle").value = "";
       document.getElementById("teacherLast").value = "";
@@ -459,8 +424,6 @@ async function saveTeacher() {
       document.getElementById("employmentStatus").value = "";
       document.getElementById("employID").value = "";
       document.getElementById("user-type").value = "";
-
-
       setTimeout(() => {
         closeModal();
         location.reload();
@@ -477,8 +440,6 @@ async function saveTeacher() {
     resetAddUserButton();
   }
 }
-
-
 async function deleteUser(professorId, buttonElement) {
   try {
     if (!confirm('Are you sure you want to delete this user?')) {
@@ -613,8 +574,6 @@ document.addEventListener('DOMContentLoaded', function () {
       btn.classList.add('filter-active');
     }
   });
-
-
   if (!userType || userType === 'TertiaryFaculty') {
     document.querySelector('[data-filter="TertiaryFaculty"]').classList.add('filter-active');
   }
@@ -633,21 +592,31 @@ function searchTable() {
   const filter = input.value.toLowerCase();
   const tbody = document.querySelector('#accountsTable tbody');
   const rows = tbody.getElementsByTagName('tr');
+  const visibleDepartments = new Set();
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
-
-    if (row.querySelector('td[colspan]')) {
+    if (row.classList.contains('department-header-row')) {
       continue;
     }
 
-    const employID = row.querySelector('.employID')
-    const nameCell = row.querySelector('.user-name');
-    const employStatus = row.querySelector('.user-employ-status');
-    const userDepartment = row.querySelector('.user-department');
-    const userRole = row.querySelector('.user-role');
-    const userEmail = row.querySelector('.user-email');
-    const userPhoneNumber = row.querySelector('.user-phone-number');
+    if (row.querySelector('td[colspan]') && !row.classList.contains('department-header-row')) {
+      continue;
+    }
+    const cells = row.querySelectorAll('td');
+    let employID = row.querySelector('.employID');
+    let nameCell = null;
+    let employStatus = row.querySelector('.user-employ-status');
+    let userDepartment = row.querySelector('.user-department');
+    let userRole = row.querySelector('.user-role');
+    let userEmail = row.querySelector('.user-email');
+    let userPhoneNumber = row.querySelector('.user-phone-number');
+    if (cells.length >= 2) {
+      nameCell = cells[1];
+    }
+    if (!nameCell) {
+      nameCell = row.querySelector('.user_name') || row.querySelector('.user-name');
+    }
 
     const name = nameCell ? (nameCell.textContent || nameCell.innerText).trim().toLowerCase() : "";
     const id = employID ? (employID.textContent || employID.innerText).trim().toLowerCase() : "";
@@ -656,51 +625,81 @@ function searchTable() {
     const role = userRole ? (userRole.textContent || userRole.innerText).trim().toLowerCase() : "";
     const email = userEmail ? (userEmail.textContent || userEmail.innerText).trim().toLowerCase() : "";
     const phoneNumber = userPhoneNumber ? (userPhoneNumber.textContent || userPhoneNumber.innerText).trim().toLowerCase() : "";
+    removeHighlights(row);
 
-    if (name.indexOf(filter) > -1) {
-      row.style.display = '';
-    } else if (id.indexOf(filter) > -1) {
-      row.style.display = '';
-    } else if (status.indexOf(filter) > -1) {
-      row.style.display = '';
-    } else if (department.indexOf(filter) > -1) {
-      row.style.display = '';
-    } else if (role.indexOf(filter) > -1) {
-      row.style.display = '';
-    } else if (email.indexOf(filter) > -1) {
-      row.style.display = '';
-    } else if (phoneNumber.indexOf(filter) > -1) {
+    if (filter === '') {
+
+      row.classList.add('department-collapsed');
+      row.classList.remove('department-expanded');
       row.style.display = '';
     } else {
-      row.style.display = 'none';
-    }
-  }
-}
 
-function filterByDepartment() {
-  const departmentFilter = document.getElementById('departmentFilter').value.toLowerCase();
-  const tbody = document.querySelector('#accountsTable tbody');
-  const rows = tbody.getElementsByTagName('tr');
+      const matches = name.includes(filter) ||
+        id.includes(filter) ||
+        status.includes(filter) ||
+        department.includes(filter) ||
+        role.includes(filter) ||
+        email.includes(filter) ||
+        phoneNumber.includes(filter);
 
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-
-    if (row.querySelector('td[colspan]')) {
-      continue;
-    }
-
-    const departmentCell = row.querySelector('.user-department');
-
-    if (departmentCell) {
-      const department = departmentCell.textContent || departmentCell.innerText;
-
-      if (departmentFilter === '' || department.toLowerCase().indexOf(departmentFilter) > -1) {
+      if (matches) {
         row.style.display = '';
+        row.classList.remove('department-collapsed');
+        row.classList.add('department-expanded');
+        highlightText(employID, id, filter);
+        highlightText(nameCell, name, filter);
+        highlightText(employStatus, status, filter);
+        highlightText(userDepartment, department, filter);
+        highlightText(userRole, role, filter);
+        highlightText(userEmail, email, filter);
+        highlightText(userPhoneNumber, phoneNumber, filter);
+        const dept = row.getAttribute('data-department') || row.getAttribute('data-role');
+        if (dept) visibleDepartments.add(dept);
       } else {
         row.style.display = 'none';
       }
     }
   }
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (row.classList.contains('department-header-row')) {
+      const dept = row.getAttribute('data-department') || row.getAttribute('data-role');
+      const toggleIcon = row.querySelector('.department-toggle-icon');
+
+      if (filter === '') {
+
+        row.style.display = '';
+        toggleIcon.textContent = 'chevron_right';
+        row.classList.remove('department-active');
+      } else if (visibleDepartments.has(dept)) {
+        row.style.display = '';
+        toggleIcon.textContent = 'expand_more';
+        row.classList.add('department-active');
+      } else {
+        row.style.display = 'none';
+      }
+    }
+  }
+}
+function highlightText(cell, cellText, filter) {
+  if (!cell || !filter || !cellText.includes(filter)) return;
+
+  const originalText = cell.textContent || cell.innerText;
+  const regex = new RegExp(`(${escapeRegex(filter)})`, 'gi');
+  const highlightedText = originalText.replace(regex, '<mark class="search-highlight">$1</mark>');
+
+  cell.innerHTML = highlightedText;
+}
+function removeHighlights(row) {
+  const highlights = row.querySelectorAll('.search-highlight');
+  highlights.forEach(mark => {
+    const parent = mark.parentNode;
+    parent.replaceChild(document.createTextNode(mark.textContent), mark);
+    parent.normalize();
+  });
+}
+function escapeRegex(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 const firstNameInput = document.getElementById('teacherFirst');
@@ -902,8 +901,6 @@ if (emailInput) {
     emailInput.classList.remove("input-error");
 
     if (!email) return;
-
-
     if (!email.includes("@")) {
       showEmailError("Email must contain '@'");
       emailInput.classList.add("input-error");
@@ -961,4 +958,257 @@ function resetAddUserButton() {
   addBtn.disabled = false;
   addBtn.style.pointerEvents = "auto";
   addBtn.innerHTML = "Add User";
+}
+function initializeDepartmentAccordion() {
+  const tbody = document.querySelector('#accountsTable tbody');
+  if (!tbody) return;
+  const allRows = Array.from(tbody.querySelectorAll('tr'));
+  const departmentGroups = {};
+
+  allRows.forEach(row => {
+    const departmentCell = row.querySelector('.user-department');
+    if (departmentCell) {
+      const department = departmentCell.textContent.trim();
+      if (!departmentGroups[department]) {
+        departmentGroups[department] = [];
+      }
+      departmentGroups[department].push(row);
+    }
+  });
+  tbody.innerHTML = '';
+  Object.keys(departmentGroups).sort().forEach(department => {
+    const teacherRows = departmentGroups[department];
+    const teacherCount = teacherRows.length;
+    const deptHeaderRow = document.createElement('tr');
+    deptHeaderRow.className = 'department-header-row';
+    deptHeaderRow.setAttribute('data-department', department);
+    deptHeaderRow.innerHTML = `
+      <td colspan="7" class="department-header-cell">
+        <div class="department-header-content">
+          <span class="department-toggle-icon material-symbols-outlined">chevron_right</span>
+          <span class="department-name">${department}</span>
+          <span class="department-count">(${teacherCount} ${teacherCount === 1 ? 'teacher' : 'teachers'})</span>
+        </div>
+      </td>
+    `;
+    deptHeaderRow.addEventListener('click', function () {
+      toggleDepartment(department);
+    });
+
+    tbody.appendChild(deptHeaderRow);
+    teacherRows.forEach(row => {
+      row.classList.add('teacher-row');
+      row.classList.add('department-collapsed');
+      row.setAttribute('data-department', department);
+      tbody.appendChild(row);
+    });
+  });
+}
+function initializeDepartmentAccordionSystemUser() {
+  const tbody = document.querySelector('.SystemUser #accountsTable tbody');
+  if (!tbody) return;
+  const allRows = Array.from(tbody.querySelectorAll('tr'));
+  const roleGroups = {};
+
+  allRows.forEach(row => {
+    const roleCell = row.querySelector('.user-role');
+    if (roleCell) {
+      const role = roleCell.textContent.trim();
+      if (!roleGroups[role]) {
+        roleGroups[role] = [];
+      }
+      roleGroups[role].push(row);
+    }
+  });
+  tbody.innerHTML = '';
+  Object.keys(roleGroups).sort().forEach(role => {
+    const userRows = roleGroups[role];
+    const userCount = userRows.length;
+    const roleHeaderRow = document.createElement('tr');
+    roleHeaderRow.className = 'department-header-row';
+    roleHeaderRow.setAttribute('data-role', role);
+    roleHeaderRow.innerHTML = `
+      <td colspan="6" class="department-header-cell">
+        <div class="department-header-content">
+          <span class="department-toggle-icon material-symbols-outlined">chevron_right</span>
+          <span class="department-name">${role.toUpperCase()}</span>
+          <span class="department-count">(${userCount} ${userCount === 1 ? 'user' : 'users'})</span>
+        </div>
+      </td>
+    `;
+    roleHeaderRow.addEventListener('click', function () {
+      toggleRole(role);
+    });
+
+    tbody.appendChild(roleHeaderRow);
+    userRows.forEach(row => {
+      row.classList.add('teacher-row');
+      row.classList.add('department-collapsed');
+      row.setAttribute('data-role', role);
+      tbody.appendChild(row);
+    });
+  });
+}
+
+function toggleDepartment(department) {
+  const headerRow = document.querySelector(`tr.department-header-row[data-department="${department}"]`);
+  const teacherRows = document.querySelectorAll(`tr.teacher-row[data-department="${department}"]`);
+  const toggleIcon = headerRow.querySelector('.department-toggle-icon');
+
+  const isCollapsed = teacherRows[0].classList.contains('department-collapsed');
+
+  if (isCollapsed) {
+
+    teacherRows.forEach(row => {
+      row.classList.remove('department-collapsed');
+      row.classList.add('department-expanded');
+    });
+    toggleIcon.textContent = 'expand_more';
+    headerRow.classList.add('department-active');
+  } else {
+
+    teacherRows.forEach(row => {
+      row.classList.add('department-collapsed');
+      row.classList.remove('department-expanded');
+    });
+    toggleIcon.textContent = 'chevron_right';
+    headerRow.classList.remove('department-active');
+  }
+}
+
+function toggleRole(role) {
+  const headerRow = document.querySelector(`tr.department-header-row[data-role="${role}"]`);
+  const userRows = document.querySelectorAll(`tr.teacher-row[data-role="${role}"]`);
+  const toggleIcon = headerRow.querySelector('.department-toggle-icon');
+
+  const isCollapsed = userRows[0].classList.contains('department-collapsed');
+
+  if (isCollapsed) {
+
+    userRows.forEach(row => {
+      row.classList.remove('department-collapsed');
+      row.classList.add('department-expanded');
+    });
+    toggleIcon.textContent = 'expand_more';
+    headerRow.classList.add('department-active');
+  } else {
+
+    userRows.forEach(row => {
+      row.classList.add('department-collapsed');
+      row.classList.remove('department-expanded');
+    });
+    toggleIcon.textContent = 'chevron_right';
+    headerRow.classList.remove('department-active');
+  }
+}
+document.addEventListener('DOMContentLoaded', function () {
+
+  const isTertiaryFaculty = document.querySelector('.accounts-table.TertiaryFaculty');
+  const isSystemUser = document.querySelector('.accounts-table.SystemUser');
+
+  if (isTertiaryFaculty) {
+    initializeDepartmentAccordion();
+  } else if (isSystemUser) {
+    initializeDepartmentAccordionSystemUser();
+  }
+});
+function filterByDepartment() {
+  const departmentFilter = document.getElementById('departmentFilter').value.toLowerCase();
+  const tbody = document.querySelector('#accountsTable tbody');
+  const rows = tbody.getElementsByTagName('tr');
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i];
+    if (row.classList.contains('department-header-row')) {
+      const dept = row.getAttribute('data-department');
+      if (departmentFilter === '' || dept.toLowerCase().indexOf(departmentFilter) > -1) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+      continue;
+    }
+
+    if (row.querySelector('td[colspan]')) {
+      continue;
+    }
+
+    const departmentCell = row.querySelector('.user-department');
+
+    if (departmentCell) {
+      const department = departmentCell.textContent || departmentCell.innerText;
+
+      if (departmentFilter === '') {
+        row.style.display = '';
+        row.classList.add('department-collapsed');
+        row.classList.remove('department-expanded');
+      } else if (department.toLowerCase().indexOf(departmentFilter) > -1) {
+        row.style.display = '';
+        row.classList.remove('department-collapsed');
+        row.classList.add('department-expanded');
+      } else {
+        row.style.display = 'none';
+      }
+    }
+  }
+  if (departmentFilter !== '') {
+    const headers = tbody.querySelectorAll('.department-header-row');
+    headers.forEach(header => {
+      if (header.style.display !== 'none') {
+        const toggleIcon = header.querySelector('.department-toggle-icon');
+        toggleIcon.textContent = 'expand_more';
+        header.classList.add('department-active');
+      }
+    });
+  } else {
+    const headers = tbody.querySelectorAll('.department-header-row');
+    headers.forEach(header => {
+      const toggleIcon = header.querySelector('.department-toggle-icon');
+      toggleIcon.textContent = 'chevron_right';
+      header.classList.remove('department-active');
+    });
+  }
+}
+
+async function toggleAccountLock(userId, isCurrentlyLocked) {
+  if (!isCurrentlyLocked) {
+    alert("Account is already active.");
+    return;
+  }
+
+  if (!confirm('Are you sure you want to unlock this account?')) {
+    return;
+  }
+
+  const button = event.target.closest('button');
+  const originalContent = button.innerHTML;
+
+  button.disabled = true;
+  button.innerHTML = '<span class="material-symbols-outlined">hourglass_empty</span>';
+
+  try {
+    const response = await fetch(`/accounts/unlock-account/${userId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Content-Type': 'application/json',
+      },
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      alert(`✅ ${data.message}`);
+      location.reload();
+    } else {
+      alert('❌ Error: ' + (data.error || 'Unknown error'));
+      button.disabled = false;
+      button.innerHTML = originalContent;
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('❌ Error unlocking account');
+    button.disabled = false;
+    button.innerHTML = originalContent;
+  }
 }

@@ -23,6 +23,11 @@ body {
   border-bottom-right-radius: 8px;
 }
 
+#current-date-time {
+  font-size: 14px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 .sidebar .bot {
   display: flex;
   flex-direction: column;
@@ -54,6 +59,7 @@ body {
 
 .sidebar a:hover {
   font-size: 15px;
+
   transition: all 0.5s;
 }
 
@@ -388,10 +394,10 @@ i {
 
 @media screen and (max-width: 342px) {
   .header-right {
-      left: 1px;
-      justify-content: center;
-      gap: 10px;
-    }
+    left: 1px;
+    justify-content: center;
+    gap: 10px;
+  }
 }
 
 .logout-modal {

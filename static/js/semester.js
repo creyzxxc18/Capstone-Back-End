@@ -272,14 +272,14 @@ function importAllTeachersExcel() {
         const file = e.target.files[0];
         if (!file) return;
 
-        // Validate file size (max 10MB)
+
         const maxSize = 10 * 1024 * 1024;
         if (file.size > maxSize) {
             showNotification("File is too large. Maximum size is 10MB.", "error");
             return;
         }
 
-        // Validate file type
+
         const allowedTypes = [
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "application/vnd.ms-excel"
@@ -289,13 +289,13 @@ function importAllTeachersExcel() {
             return;
         }
 
-        // Show confirmation
+
         const confirmed = confirm(
             "This will import schedules for all teachers in the Excel file. Continue?"
         );
         if (!confirmed) return;
 
-        // Show loading
+
         const loadingOverlay = showLoading("Processing schedules for all teachers...");
 
         try {
@@ -304,7 +304,7 @@ function importAllTeachersExcel() {
 
             console.log("Uploading file:", file.name, "Size:", file.size);
 
-            const response = await fetch("maintenance/semester/import_all_teachers_excel/", {
+            const response = await fetch("/semester/maintenance/import_all_teachers_excel/", {
                 method: "POST",
                 headers: { "X-CSRFToken": csrftoken },
                 body: formData,
@@ -313,20 +313,20 @@ function importAllTeachersExcel() {
             console.log("Response status:", response.status);
             console.log("Response headers:", response.headers);
 
-            // IMPORTANT: Read the response body to see the actual error
+
             const data = await response.json();
             console.log("Response data:", data);
 
             if (!response.ok) {
-                // Server returned an error (400, 500, etc.)
+
                 let errorMessage = `Server error: ${response.status} ${response.statusText}`;
 
-                // Add specific error details from server
+
                 if (data.error) {
                     errorMessage += `\n\nDetails: ${data.error}`;
                 }
 
-                // Show any validation errors
+
                 if (data.errors && data.errors.length > 0) {
                     errorMessage += `\n\nErrors:\n${data.errors.join('\n')}`;
                 }
@@ -340,7 +340,7 @@ function importAllTeachersExcel() {
                 let message = buildImportSummary(data);
                 showNotification(message, data.has_errors ? "warning" : "success");
 
-                // Refresh view if needed
+
                 if (typeof viewClasses === 'function' && selectedProfessorId) {
                     viewClasses(
                         selectedProfessorId,
@@ -356,7 +356,7 @@ function importAllTeachersExcel() {
         } catch (error) {
             console.error("Error importing schedules:", error);
 
-            // More detailed error message
+
             let errorMsg = "Failed to upload file.\n\n";
             errorMsg += `Error: ${error.message}\n\n`;
             errorMsg += "Please check:\n";
@@ -373,15 +373,15 @@ function importAllTeachersExcel() {
     input.click();
 }
 
-// Helper function to build import summary
+
 function buildImportSummary(data) {
     const parts = [];
 
-    // Summary header
+
     parts.push(`✓ Bulk Import Complete\n`);
     parts.push(`─────────────────────────`);
 
-    // Overall statistics
+
     parts.push(`\n📊 Overall Statistics:`);
     parts.push(`   • Teachers processed: ${data.teachers_processed}`);
     parts.push(`   • Total classes imported: ${data.total_imported}`);
@@ -390,7 +390,7 @@ function buildImportSummary(data) {
         parts.push(`   • Total classes skipped: ${data.total_skipped}`);
     }
 
-    // Per-teacher breakdown
+
     if (data.teacher_results && data.teacher_results.length > 0) {
         parts.push(`\n👥 Per-Teacher Breakdown:`);
 
@@ -404,7 +404,7 @@ function buildImportSummary(data) {
         });
     }
 
-    // Skipped classes details
+
     if (data.skipped_details && data.skipped_details.length > 0) {
         parts.push(`\n\n⚠️ Skipped Classes (Conflicts):`);
 
@@ -415,7 +415,7 @@ function buildImportSummary(data) {
         });
     }
 
-    // Errors
+
     if (data.errors && data.errors.length > 0) {
         parts.push(`\n\n❌ Errors:`);
         data.errors.forEach(error => {
@@ -427,7 +427,7 @@ function buildImportSummary(data) {
 }
 
 function showNotification(message, type = "info") {
-    // Remove existing notification if any
+
     const existing = document.getElementById("notificationModal");
     if (existing) existing.remove();
 
@@ -467,12 +467,12 @@ function showNotification(message, type = "info") {
             </div>
             <button onclick="this.parentElement.parentElement.remove()" 
                     style="background: none; border: none; font-size: 20px; 
-                           cursor: pointer; padding: 0; color: ${color.text}; 
-                           opacity: 0.7;">×</button>
+                    cursor: pointer; padding: 0; color: ${color.text}; 
+                    opacity: 0.7;">×</button>
         </div>
     `;
 
-    // Add animation
+
     const style = document.createElement("style");
     style.textContent = `
         @keyframes slideIn {
@@ -490,7 +490,7 @@ function showNotification(message, type = "info") {
 
     document.body.appendChild(modal);
 
-    // Auto-remove after 5 seconds (10 seconds for warnings with details)
+
     const timeout = message.length > 100 ? 10000 : 5000;
     setTimeout(() => {
         if (modal.parentNode) {
@@ -538,7 +538,7 @@ function showLoading(message = "Loading...") {
         <p style="margin: 0; font-size: 16px; color: #333;">${message}</p>
     `;
 
-    // Add spinner animation
+
     const style = document.createElement("style");
     style.textContent = `
         @keyframes spin {
@@ -712,7 +712,7 @@ function submitEditClass(event) {
     const startTime = document.getElementById("editStartTime").value;
     const endTime = document.getElementById("editEndTime").value;
     const room = document.getElementById("editRoom").value.trim();
-    
+
     if (!subjectCode || !subjectName || !day || !startTime || !endTime || !room) {
         alert("Please fill in all fields.");
         return;
@@ -771,4 +771,30 @@ function submitEditClass(event) {
             console.error("Error updating class:", err);
             alert("Error updating class.");
         });
+}
+
+function filterByDepartment() {
+    const departmentFilter = document.getElementById('departmentFilter').value.toLowerCase();
+    const tbody = document.querySelector('#professorTable tbody');
+    const rows = tbody.getElementsByTagName('tr');
+
+    for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+
+        if (row.querySelector('td[colspan]')) {
+            continue;
+        }
+
+        const departmentCell = row.querySelector('.user-department');
+
+        if (departmentCell) {
+            const department = departmentCell.textContent || departmentCell.innerText;
+
+            if (departmentFilter === '' || department.toLowerCase().indexOf(departmentFilter) > -1) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        }
+    }
 }

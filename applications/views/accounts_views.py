@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 def validate_name_field(name, field_name):
     if not name or not name.strip():
-        return True, None 
+        return True, None
     if not re.match(r"^[a-zA-ZÀ-ÿ\s'\-]+$", name.strip()):
         return (
             False,
@@ -56,7 +56,7 @@ def send_app_link_via_email(
             employ_id_section = f"\nEmployee ID: {employ_id}"
 
         body = (
-            f"Hi {user_name},\n\n"
+            f"Hello, User!!,\n\n"
             f"Welcome to CSCQC App! Your account has been successfully created.\n\n"
             f"Download or access the application using the link below:\n"
             f"{app_link}\n"
@@ -101,14 +101,16 @@ class RegisterView(View):
                     return JsonResponse({"error": f"{field} is required"}, status=400)
 
             name_validations = [
-            ("first_name", "First name"),
-            ("last_name", "Last name"),
-            ("midName", "Middle name")
+                ("first_name", "First name"),
+                ("last_name", "Last name"),
+                ("midName", "Middle name"),
             ]
 
             for field_key, field_label in name_validations:
                 if data.get(field_key):
-                    is_valid, error_msg = validate_name_field(data.get(field_key), field_label)
+                    is_valid, error_msg = validate_name_field(
+                        data.get(field_key), field_label
+                    )
                     if not is_valid:
                         return JsonResponse({"error": error_msg}, status=400)
 
@@ -116,10 +118,7 @@ class RegisterView(View):
 
             email_regex = r"^[^@\s]+@[^@\s]+\.[^@\s]+$"
             if not re.match(email_regex, email):
-                return JsonResponse(
-                    {"error": "Invalid email format"},
-                    status=400
-                    )
+                return JsonResponse({"error": "Invalid email format"}, status=400)
 
             user_type = data.get("user_type")
             email = data["email"]
@@ -155,7 +154,7 @@ class RegisterView(View):
                     user.is_superuser = True
                 else:
                     user.is_staff = True
-                    user.is_superuser = False  
+                    user.is_superuser = False
 
                 user.isFirstLogin = True
                 user.save()
@@ -341,7 +340,7 @@ def accounts(request):
                     profile = Profile.objects.get(user=user)
                     user_role = profile.userRole
                 except Profile.DoesNotExist:
-                    user_role = "staff"  
+                    user_role = "staff"
                 except Exception as e:
                     logger.warning(f"Error getting profile for user {user.id}: {e}")
                     user_role = "staff"
@@ -359,6 +358,7 @@ def accounts(request):
                         "userRole": user_role,
                         "employID": user.employId,
                         "user_type": "SystemUser",
+                        "is_locked": user.is_locked,
                     }
                 )
 
@@ -399,7 +399,7 @@ def delete_user(request, pk):
 
     try:
         firebase_service = FirebaseService()
-        
+
         if pk.startswith("django_"):
             django_id = int(pk.replace("django_", ""))
             try:
@@ -422,7 +422,7 @@ def delete_user(request, pk):
             )
 
         logger.info(f"🗑️ Deleting Firebase user and related records: {pk}")
-        
+
         try:
             attendance_ref = firebase_service.db.collection("attendance")
             from google.cloud.firestore import FieldFilter
@@ -449,7 +449,6 @@ def delete_user(request, pk):
         except Exception as e:
             logger.error(f"⚠️ Error deleting attendance: {e}")
 
-        
         try:
             classes_ref = firebase_service.db.collection("classes")
             query_t = classes_ref.where(
@@ -470,7 +469,6 @@ def delete_user(request, pk):
         except Exception as e:
             logger.error(f"⚠️ Error deleting classes: {e}")
 
-        
         try:
             schedules_ref = firebase_service.db.collection("schedules")
             query_t = schedules_ref.where(
@@ -490,9 +488,9 @@ def delete_user(request, pk):
 
         except Exception as e:
             logger.error(f"⚠️ Error deleting schedules: {e}")
-        
+
         try:
-            
+
             try:
                 firebase_service.get_user_by_id(pk)
                 exists = True
@@ -510,7 +508,6 @@ def delete_user(request, pk):
 
         except Exception as e:
             logger.warning(f"⚠️ Error deleting Firebase Auth user: {e}")
-            
 
         return JsonResponse(
             {
@@ -570,7 +567,7 @@ CSCQC Administration Team
 @require_POST
 def reset_password(request, pk):
     try:
-        
+
         current_user = request.user
         try:
             from applications.models import Profile
@@ -594,7 +591,7 @@ def reset_password(request, pk):
                     {"success": False, "error": f"System User {clean_pk} not found"},
                     status=404,
                 )
-            
+
             if current_role != "admin" and not current_user.is_superuser:
                 return JsonResponse(
                     {
@@ -606,7 +603,7 @@ def reset_password(request, pk):
 
             new_password = "cscqcSys123"
             user.set_password(new_password)
-            
+
             user.isFirstLogin = True
             user.save()
             return JsonResponse(
@@ -618,7 +615,7 @@ def reset_password(request, pk):
             )
 
         firebase_service = FirebaseService()
-        
+
         result = firebase_service.reset_password_to_value(pk)
         user_data = firebase_service.get_user_by_id(pk)
 
@@ -712,13 +709,10 @@ def check_employid(request):
         )
 
         if not employ_id:
-            return JsonResponse({
-                "exists": False,
-                "message": "No employID provided"
-            })
+            return JsonResponse({"exists": False, "message": "No employID provided"})
 
         firebase_service = FirebaseService()
-        exists = False  
+        exists = False
 
         django_qs = User.objects.filter(employId=employ_id)
         if exclude_uid.startswith("django_"):
@@ -738,7 +732,6 @@ def check_employid(request):
             query = users_ref.where(filter=FieldFilter("employID", "==", employ_id))
             docs = list(query.stream())
 
-            
             if exclude_uid and not exclude_uid.startswith("django_"):
                 docs = [doc for doc in docs if doc.id != exclude_uid]
 
@@ -748,14 +741,16 @@ def check_employid(request):
         except Exception as e:
             logger.error(f"Error checking Firebase employID: {e}")
 
-        return JsonResponse({
-            "exists": exists,
-            "message": (
-                "This employee ID exists in system user or tertiary faculty"
-                if exists else
-                "EmployID available"
-            )
-        })
+        return JsonResponse(
+            {
+                "exists": exists,
+                "message": (
+                    "This employee ID exists in system user or tertiary faculty"
+                    if exists
+                    else "EmployID available"
+                ),
+            }
+        )
 
     except Exception as error:
         logger.error(f"❌ Global employID check failed: {error}")
@@ -771,25 +766,22 @@ def import_user_excel(request):
 
         excel_file = request.FILES["file"]
 
-        
         wb = openpyxl.load_workbook(filename=BytesIO(excel_file.read()), data_only=True)
         sheet = wb.active
 
         user_list = []
 
-        
         for row_num, row in enumerate(
             sheet.iter_rows(min_row=3, values_only=True), start=3
         ):
             if not row or not row[1] or not row[2] or not row[3]:
-                
+
                 continue
 
             email = str(row[2]).strip()
             firstName = str(row[3]).strip()
             lastName = str(row[4]).strip()
 
-            
             if "@" not in email:
                 logger.warning(f"Row {row_num}: Invalid email format: {email}")
                 continue
@@ -818,11 +810,9 @@ def import_user_excel(request):
                 {"error": "No valid users found in Excel file"}, status=400
             )
 
-        
         firebase_service = FirebaseService()
         result = firebase_service.bulk_create_users(user_list)
 
-        
         message_parts = []
         if result["count"] > 0:
             message_parts.append(f"{result['count']} users imported successfully")
@@ -862,17 +852,15 @@ def check_name(request):
         )
 
         if not first_name or not last_name:
-            return JsonResponse({
-                "exists": False,
-                "message": "First name and last name required"
-            })
+            return JsonResponse(
+                {"exists": False, "message": "First name and last name required"}
+            )
 
         firebase_service = FirebaseService()
         exists = False
 
         django_qs = User.objects.filter(
-            first_name__iexact=first_name,
-            last_name__iexact=last_name
+            first_name__iexact=first_name, last_name__iexact=last_name
         )
 
         if exclude_uid.startswith("django_"):
@@ -895,7 +883,11 @@ def check_name(request):
             for doc in all_users:
                 user_data = doc.to_dict()
 
-                if exclude_uid and not exclude_uid.startswith("django_") and doc.id == exclude_uid:
+                if (
+                    exclude_uid
+                    and not exclude_uid.startswith("django_")
+                    and doc.id == exclude_uid
+                ):
                     continue
 
                 user_first = user_data.get("first_name", "").strip().lower()
@@ -908,14 +900,16 @@ def check_name(request):
         except Exception as e:
             logger.error(f"Error checking Firebase names: {e}")
 
-        return JsonResponse({
-            "exists": exists,
-            "message": (
-                "A user with this first and last name already exists"
-                if exists else
-                "Name combination available"
-            )
-        })
+        return JsonResponse(
+            {
+                "exists": exists,
+                "message": (
+                    "A user with this first and last name already exists"
+                    if exists
+                    else "Name combination available"
+                ),
+            }
+        )
 
     except Exception as error:
         logger.error(f"❌ Name check failed: {error}")
@@ -929,13 +923,66 @@ def check_email(request):
     if not email:
         return JsonResponse({"exists": False})
 
-    # Django users
     if User.objects.filter(email=email).exists():
         return JsonResponse({"exists": True})
 
-    # Firebase users
     firebase_service = FirebaseService()
     if firebase_service.check_email_exists(email):
         return JsonResponse({"exists": True})
 
     return JsonResponse({"exists": False})
+
+
+@require_POST
+@login_required
+def unlock_account(request, pk):
+    try:
+        current_user = request.user
+
+        try:
+            from applications.models import Profile
+
+            profile = Profile.objects.get(user=current_user)
+            current_role = profile.userRole
+        except Profile.DoesNotExist:
+            current_role = "admin" if current_user.is_superuser else "staff"
+
+        if current_role != "admin" and not current_user.is_superuser:
+            return JsonResponse(
+                {
+                    "success": False,
+                    "error": "Permission denied. Only admin can unlock accounts.",
+                },
+                status=403,
+            )
+
+        if pk.startswith("django_"):
+            django_id = int(pk.replace("django_", ""))
+            try:
+                user = User.objects.get(id=django_id)
+                user.is_locked = False
+                user.locked_at = None
+                user.failed_login_attempts = 0
+                user.save()
+
+                return JsonResponse(
+                    {
+                        "success": True,
+                        "message": f"Account unlocked for {user.email}",
+                        "email": user.email,
+                    }
+                )
+            except User.DoesNotExist:
+                return JsonResponse(
+                    {"success": False, "error": f"System User {pk} not found"},
+                    status=404,
+                )
+        else:
+            return JsonResponse(
+                {"success": False, "error": "Only System Users can be locked/unlocked"},
+                status=400,
+            )
+
+    except Exception as e:
+        logger.error(f"Unlock account error: {e}")
+        return JsonResponse({"success": False, "error": str(e)}, status=500)

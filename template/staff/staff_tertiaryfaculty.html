@@ -44,8 +44,6 @@
                     <th>Name</th>
                     <th>Department</th>
                     <th>Employment Status</th>
-                    <th>Email</th>
-                    <th>Contact</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -53,15 +51,12 @@
                 {% for professor in professors %}
                 <tr data-professor-id="{{ professor.id }}" data-user-type="{{ professor.user_type }}"
                     data-first-name="{{ professor.firstName }}" data-mid-name="{{ professor.midName }}"
-                    data-last-name="{{ professor.lastName }}" data-email="{{ professor.email }}"
-                    data-phone="{{ professor.phoneNumber }}" data-department="{{ professor.department }}"
+                    data-last-name="{{ professor.lastName }}" data-department="{{ professor.department }}"
                     data-employment-status="{{ professor.employmentStatus }}" data-employ-id="{{ professor.employID }}">
                     <td class="employID">{{professor.employID}}</td>
                     <td class="user_name">{{ professor.full_name }}</td>
                     <td class="user-department">{{ professor.department }}</td>
                     <td class="user-employ-status">{{ professor.employmentstatus|default:"Full-time" }}</td>
-                    <td class="user-email">{{ professor.email }}</td>
-                    <td class="user-phone-number">{{ professor.contact_number }}</td>
                     <td class="actions">
                         <button title="Reset-password"
                             onclick="resetPassword('{{professor.id}}', '{{professor.email}}', '{{professor.user_type}}')">
@@ -69,9 +64,6 @@
                         </button>
                         <button title="Edit-info" class="edit-btn-action">
                             <span class="material-symbols-outlined">edit</span>
-                        </button>
-                        <button title="Delete" onclick="deleteUser('{{ professor.id }}', this)">
-                            <span class="material-symbols-outlined">delete</span>
                         </button>
                     </td>
                 </tr>
@@ -81,41 +73,38 @@
                 </tr>
                 {% endfor %}
             </tbody>
-        </table>
-    </div>
-</div>
+            </table>
+            </div>
 
 <div class="modal" id="teacherModal">
     <div class="modal-content">
         <h3>Register User</h3>
 
-        <label for="user-type">User Type: <span style="color: red;">*</span></label>
+        <label for="user-type"><span style="color: red;">* </span> User Type:</label>
         <select required id="user-type" onchange="toggleUserTypeFields()">
             <option value="TertiaryFaculty" selected>Tertiary Faculty</option>
         </select>
 
-        <label for="employID">Employee ID <span style="color: red;">*</span></label>
+        <label for="employID"><span style="color: red;">* </span> Employee ID</label>
         <input required type="text" id="employID" placeholder="Enter employee ID" maxlength="8" minlength="8">
 
-        <label for="teacherEmail">Email Address<span style="color: red;">*</span></label>
+        <label for="teacherEmail"><span style="color: red;">* </span> Email Address</label>
         <input required type="email" id="teacherEmail" placeholder="Enter email address">
 
-        <label for="teacherFirst">First Name <span style="color: red;">*</span></label>
+        <label for="teacherFirst"><span style="color: red;">* </span> First Name</label>
         <input required type="text" id="teacherFirst" placeholder="Enter first name">
 
         <label for="teacherMiddle">Middle Name (Optional)</label>
         <input type="text" id="teacherMiddle" placeholder="Enter middle name">
 
-        <label for="teacherLast">Last Name <span style="color: red;">*</span></label>
+        <label for="teacherLast"><span style="color: red;">* </span>Last Name </label>
         <input required type="text" id="teacherLast" placeholder="Enter last name">
 
-        <label for="teacherContact">Contact Number <span style="color: red;">*</span></label>
+        <label for="teacherContact"><span style="color: red;">*</span>Contact Number</label>
         <input required type="tel" id="teacherContact" placeholder="Enter contact number" maxlength="11"
             pattern="[0-9]{11}" title="Please enter exactly 11 digits">
-
-
         <div id="facultyFields" style="display: none;">
-            <label for="teacherDept">Department <span style="color: red;">*</span></label>
+            <label for="teacherDept"><span style="color: red;">* </span>Department</label>
             <select required id="teacherDept">
                 <option value="" disabled selected>Select Department</option>
                 <option value="Information Technology">Information Technology</option>
@@ -124,7 +113,7 @@
                 <option value="Tourism Management">Tourism Management</option>
                 <option value="Basic Education">Basic Education</option>
             </select>
-            <label for="employmentStatus">Employment Status <span style="color: red;">*</span></label>
+            <label for="employmentStatus"><span style="color: red;">* </span>Employment Status</label>
             <select id="employmentStatus">
                 <option value="" disabled selected>Select Status</option>
                 <option value="Regular">Regular</option>
@@ -205,7 +194,5 @@
         </div>
     </div>
 </div>
-
-
 <script src="{% static 'js/staff_tertiary_faculty.js' %}"></script>
 {% endblock %}

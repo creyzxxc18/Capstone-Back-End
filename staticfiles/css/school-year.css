@@ -1,6 +1,6 @@
 body {
   font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
-      "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
+    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
   background-color: #f4f6f9;
   margin: 0;
   padding: 0;
@@ -40,10 +40,37 @@ body {
   flex-wrap: wrap;
 }
 
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 label {
   color: #fff;
   font-size: 14px;
   font-weight: 500;
+}
+
+.status-select {
+  padding: 10px 14px;
+  border-radius: 25px;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  font-size: 13px;
+  color: #333;
+  min-width: 140px;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.status-select:focus {
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
 }
 
 .search-container {
@@ -149,24 +176,109 @@ tr:last-child td {
   border-bottom: none;
 }
 
-.enabled {
-  color: #28a745;
-  font-weight: bold;
-  background-color: rgba(40, 167, 69, 0.1);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  text-transform: uppercase;
+.access-icons-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
 }
 
-.disabled {
-  color: #dc3545;
-  font-weight: bold;
-  background-color: rgba(220, 53, 69, 0.1);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  text-transform: uppercase;
+.access-actions-cell {
+  text-align: center;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.icon-btn .material-symbols-outlined {
+  font-size: 20px;
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+}
+
+.icon-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.icon-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.icon-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.icon-btn.active-icon {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+.icon-btn.active-icon:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.icon-btn.archived-icon {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+}
+
+.icon-btn.archived-icon:hover:not(:disabled) {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+.icon-btn.pdf-icon {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+}
+
+.icon-btn.pdf-icon:hover:not(:disabled) {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+}
+
+.icon-btn.pdf-icon.disabled {
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+  color: #d1d5db;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.icon-btn.pdf-icon.disabled:hover {
+  transform: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.icon-btn.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.icon-btn.loading .material-symbols-outlined.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .update-btn {
@@ -193,7 +305,6 @@ tr:last-child td {
   box-shadow: 0 4px 12px rgba(22, 114, 236, 0.3);
 }
 
-/* Responsive design */
 @media (max-width: 768px) {
   .container {
     width: 95%;
@@ -205,6 +316,16 @@ tr:last-child td {
     flex-direction: column;
     gap: 15px;
     align-items: stretch;
+  }
+
+  .filter-group {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .status-select {
+    flex: 1;
+    min-width: 0;
   }
 
   .search-container {
@@ -264,27 +385,62 @@ tr:last-child td {
   cursor: not-allowed;
 }
 
-.access-btn.enabled {
+.access-btn.active {
   background-color: #4caf50;
   color: white;
 }
 
-.access-btn.enabled:hover:not(:disabled) {
+.access-btn.active:hover:not(:disabled) {
   background-color: #45a049;
   transform: scale(1.05);
 }
 
-.access-btn.disabled {
+.access-btn.archived {
   background-color: #f44336;
   color: white;
 }
 
-.access-btn.disabled:hover:not(:disabled) {
+.access-btn.archived:hover:not(:disabled) {
   background-color: #da190b;
   transform: scale(1.05);
 }
 
-/* Additional responsive design for small screens */
+.download-report-btn {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.download-report-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+.download-report-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.download-report-btn i {
+  font-size: 14px;
+}
+
+.actions-cell {
+  text-align: center;
+}
+
 @media (max-width: 455px) {
   .container {
     padding: 20px 15px;
@@ -296,6 +452,14 @@ tr:last-child td {
 
   .date-value {
     font-size: 20px;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  .status-select {
+    flex: 1;
   }
 
   .search-container {
@@ -311,7 +475,6 @@ tr:last-child td {
     right: 5px;
   }
 
-  /* Hide Employee ID and Department columns */
   th.employID,
   td.employID,
   th.user-department,
@@ -319,7 +482,6 @@ tr:last-child td {
     display: none;
   }
 
-  /* Adjust remaining columns */
   th.user-name,
   td.user-name {
     text-align: left;
@@ -335,9 +497,16 @@ tr:last-child td {
     padding: 12px 10px;
   }
 
-  .access-btn {
-    font-size: 12px;
-    min-width: 80px;
-    padding: 5px 12px;
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .icon-btn .material-symbols-outlined {
+    font-size: 18px;
+  }
+
+  .access-icons-container {
+    gap: 8px;
   }
 }

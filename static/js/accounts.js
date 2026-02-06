@@ -590,97 +590,88 @@ function filterByUserType(userTypeFilter) {
 function searchTable() {
   const input = document.getElementById('searchInput');
   const filter = input.value.toLowerCase();
-  const tbody = document.querySelector('#accountsTable tbody');
-  const rows = tbody.getElementsByTagName('tr');
-  const visibleDepartments = new Set();
 
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-    if (row.classList.contains('department-header-row')) {
-      continue;
+  const activeContainer = document.querySelector('.accounts-table:not([style*="display: none"])');
+  if (!activeContainer) return;
+
+  const tbody = activeContainer.querySelector('tbody');
+  const rows = tbody.querySelectorAll('tr');
+  const noResultsRow = tbody.querySelector('.no-results-message');
+
+  let visibleCount = 0;
+  const visibleGroups = new Set();
+
+  // Reset when empty
+  if (filter === '') {
+    if (noResultsRow) noResultsRow.style.display = 'none';
+
+    const isTertiary = activeContainer.classList.contains('TertiaryFaculty');
+    isTertiary
+      ? initializeDepartmentAccordion()
+      : initializeDepartmentAccordionSystemUser();
+    return;
+  }
+
+  rows.forEach(row => {
+    if (
+      row.classList.contains('no-results-message') ||
+      row.classList.contains('department-header-row')
+    ) {
+      return;
     }
 
-    if (row.querySelector('td[colspan]') && !row.classList.contains('department-header-row')) {
-      continue;
-    }
-    const cells = row.querySelectorAll('td');
-    let employID = row.querySelector('.employID');
-    let nameCell = null;
-    let employStatus = row.querySelector('.user-employ-status');
-    let userDepartment = row.querySelector('.user-department');
-    let userRole = row.querySelector('.user-role');
-    let userEmail = row.querySelector('.user-email');
-    let userPhoneNumber = row.querySelector('.user-phone-number');
-    if (cells.length >= 2) {
-      nameCell = cells[1];
-    }
-    if (!nameCell) {
-      nameCell = row.querySelector('.user_name') || row.querySelector('.user-name');
-    }
-
-    const name = nameCell ? (nameCell.textContent || nameCell.innerText).trim().toLowerCase() : "";
-    const id = employID ? (employID.textContent || employID.innerText).trim().toLowerCase() : "";
-    const status = employStatus ? (employStatus.textContent || employStatus.innerText).trim().toLowerCase() : "";
-    const department = userDepartment ? (userDepartment.textContent || userDepartment.innerText).trim().toLowerCase() : "";
-    const role = userRole ? (userRole.textContent || userRole.innerText).trim().toLowerCase() : "";
-    const email = userEmail ? (userEmail.textContent || userEmail.innerText).trim().toLowerCase() : "";
-    const phoneNumber = userPhoneNumber ? (userPhoneNumber.textContent || userPhoneNumber.innerText).trim().toLowerCase() : "";
+    const text = row.innerText.toLowerCase();
     removeHighlights(row);
 
-    if (filter === '') {
-
-      row.classList.add('department-collapsed');
-      row.classList.remove('department-expanded');
+    if (text.includes(filter)) {
       row.style.display = '';
+      row.classList.remove('department-collapsed');
+      row.classList.add('department-expanded');
+
+      const group =
+        row.getAttribute('data-department') ||
+        row.getAttribute('data-role');
+
+      if (group) visibleGroups.add(group);
+      visibleCount++;
     } else {
-
-      const matches = name.includes(filter) ||
-        id.includes(filter) ||
-        status.includes(filter) ||
-        department.includes(filter) ||
-        role.includes(filter) ||
-        email.includes(filter) ||
-        phoneNumber.includes(filter);
-
-      if (matches) {
-        row.style.display = '';
-        row.classList.remove('department-collapsed');
-        row.classList.add('department-expanded');
-        highlightText(employID, id, filter);
-        highlightText(nameCell, name, filter);
-        highlightText(employStatus, status, filter);
-        highlightText(userDepartment, department, filter);
-        highlightText(userRole, role, filter);
-        highlightText(userEmail, email, filter);
-        highlightText(userPhoneNumber, phoneNumber, filter);
-        const dept = row.getAttribute('data-department') || row.getAttribute('data-role');
-        if (dept) visibleDepartments.add(dept);
-      } else {
-        row.style.display = 'none';
-      }
+      row.style.display = 'none';
+      row.classList.remove('department-expanded');
+      row.classList.add('department-collapsed');
     }
-  }
-  for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-    if (row.classList.contains('department-header-row')) {
-      const dept = row.getAttribute('data-department') || row.getAttribute('data-role');
-      const toggleIcon = row.querySelector('.department-toggle-icon');
+  });
 
-      if (filter === '') {
+  // Handle headers
+  const headers = tbody.querySelectorAll('.department-header-row');
+  headers.forEach(header => {
+    const group =
+      header.getAttribute('data-department') ||
+      header.getAttribute('data-role');
 
-        row.style.display = '';
-        toggleIcon.textContent = 'chevron_right';
-        row.classList.remove('department-active');
-      } else if (visibleDepartments.has(dept)) {
-        row.style.display = '';
-        toggleIcon.textContent = 'expand_more';
-        row.classList.add('department-active');
-      } else {
-        row.style.display = 'none';
-      }
+    header.style.display = visibleGroups.has(group) ? '' : 'none';
+  });
+
+  // ZERO RESULTS → disable accordion completely
+  if (visibleCount === 0) {
+    headers.forEach(header => (header.style.display = 'none'));
+
+    tbody.querySelectorAll('.teacher-row').forEach(row => {
+      row.style.display = 'none';
+      row.classList.remove('department-expanded');
+      row.classList.add('department-collapsed');
+    });
+
+    if (noResultsRow) {
+      noResultsRow.style.display = 'table-row';
     }
+    return;
   }
+
+  // Normal case
+  if (noResultsRow) noResultsRow.style.display = 'none';
 }
+
+
 function highlightText(cell, cellText, filter) {
   if (!cell || !filter || !cellText.includes(filter)) return;
 
@@ -959,26 +950,45 @@ function resetAddUserButton() {
   addBtn.style.pointerEvents = "auto";
   addBtn.innerHTML = "Add User";
 }
-function initializeDepartmentAccordion() {
-  const tbody = document.querySelector('#accountsTable tbody');
-  if (!tbody) return;
-  const allRows = Array.from(tbody.querySelectorAll('tr'));
-  const departmentGroups = {};
 
-  allRows.forEach(row => {
-    const departmentCell = row.querySelector('.user-department');
+function initializeDepartmentAccordion() {
+  const tbody = document.querySelector('.TertiaryFaculty #accountsTable tbody');
+  if (!tbody) return;
+
+  const allRows = Array.from(tbody.querySelectorAll('tr'));
+
+  // Find the No Results row if it exists
+  const noResultsRow = allRows.find(row => row.id === 'noResultsRow' || row.classList.contains('no-results-message'));
+
+  // Filter out the "No Results" row and any existing header rows before grouping
+  const dataRows = allRows.filter(row =>
+    !row.classList.contains('department-header-row') &&
+    row !== noResultsRow
+  );
+
+  const departmentGroups = {};
+  dataRows.forEach(row => {
+    const departmentCell = row.querySelector('.user-department') || row.querySelector('.user-role');
     if (departmentCell) {
       const department = departmentCell.textContent.trim();
-      if (!departmentGroups[department]) {
-        departmentGroups[department] = [];
-      }
+      if (!departmentGroups[department]) departmentGroups[department] = [];
       departmentGroups[department].push(row);
     }
   });
-  tbody.innerHTML = '';
+
+  if (Object.keys(departmentGroups).length === 0) return;
+
+  tbody.innerHTML = ''; // Clear table
+
+  // Re-append the "No Results" row so it's always available in the DOM
+  if (noResultsRow) {
+    noResultsRow.style.display = 'none'; // Keep hidden initially
+    tbody.appendChild(noResultsRow);
+  }
+
+  // Rebuild the grouped table
   Object.keys(departmentGroups).sort().forEach(department => {
     const teacherRows = departmentGroups[department];
-    const teacherCount = teacherRows.length;
     const deptHeaderRow = document.createElement('tr');
     deptHeaderRow.className = 'department-header-row';
     deptHeaderRow.setAttribute('data-department', department);
@@ -987,43 +997,55 @@ function initializeDepartmentAccordion() {
         <div class="department-header-content">
           <span class="department-toggle-icon material-symbols-outlined">chevron_right</span>
           <span class="department-name">${department}</span>
-          <span class="department-count">(${teacherCount} ${teacherCount === 1 ? 'teacher' : 'teachers'})</span>
+          <span class="department-count">(${teacherRows.length} ${teacherRows.length === 1 ? 'teacher' : 'teachers'})</span>
         </div>
-      </td>
-    `;
-    deptHeaderRow.addEventListener('click', function () {
-      toggleDepartment(department);
-    });
+      </td>`;
 
+    deptHeaderRow.onclick = () => toggleDepartment(department);
     tbody.appendChild(deptHeaderRow);
+
     teacherRows.forEach(row => {
-      row.classList.add('teacher-row');
-      row.classList.add('department-collapsed');
+      row.classList.add('teacher-row', 'department-collapsed');
       row.setAttribute('data-department', department);
       tbody.appendChild(row);
     });
   });
 }
+
 function initializeDepartmentAccordionSystemUser() {
   const tbody = document.querySelector('.SystemUser #accountsTable tbody');
   if (!tbody) return;
-  const allRows = Array.from(tbody.querySelectorAll('tr'));
-  const roleGroups = {};
 
-  allRows.forEach(row => {
-    const roleCell = row.querySelector('.user-role');
+  const allRows = Array.from(tbody.querySelectorAll('tr'));
+  const noResultsRow = allRows.find(row => row.id === 'noResultsRow' || row.classList.contains('no-results-message'));
+
+  const dataRows = allRows.filter(row =>
+    !row.classList.contains('department-header-row') &&
+    row !== noResultsRow
+  );
+
+  const roleGroups = {};
+  dataRows.forEach(row => {
+    // Corrected variable name from departmentCell/roleCell
+    const roleCell = row.querySelector('.user-role') || row.querySelector('.user-department');
     if (roleCell) {
       const role = roleCell.textContent.trim();
-      if (!roleGroups[role]) {
-        roleGroups[role] = [];
-      }
+      if (!roleGroups[role]) roleGroups[role] = [];
       roleGroups[role].push(row);
     }
   });
+
+  if (Object.keys(roleGroups).length === 0) return;
+
   tbody.innerHTML = '';
+
+  if (noResultsRow) {
+    noResultsRow.style.display = 'none';
+    tbody.appendChild(noResultsRow);
+  }
+
   Object.keys(roleGroups).sort().forEach(role => {
     const userRows = roleGroups[role];
-    const userCount = userRows.length;
     const roleHeaderRow = document.createElement('tr');
     roleHeaderRow.className = 'department-header-row';
     roleHeaderRow.setAttribute('data-role', role);
@@ -1032,18 +1054,15 @@ function initializeDepartmentAccordionSystemUser() {
         <div class="department-header-content">
           <span class="department-toggle-icon material-symbols-outlined">chevron_right</span>
           <span class="department-name">${role.toUpperCase()}</span>
-          <span class="department-count">(${userCount} ${userCount === 1 ? 'user' : 'users'})</span>
+          <span class="department-count">(${userRows.length} ${userRows.length === 1 ? 'user' : 'users'})</span>
         </div>
-      </td>
-    `;
-    roleHeaderRow.addEventListener('click', function () {
-      toggleRole(role);
-    });
+      </td>`;
 
+    roleHeaderRow.onclick = () => toggleRole(role);
     tbody.appendChild(roleHeaderRow);
+
     userRows.forEach(row => {
-      row.classList.add('teacher-row');
-      row.classList.add('department-collapsed');
+      row.classList.add('teacher-row', 'department-collapsed');
       row.setAttribute('data-role', role);
       tbody.appendChild(row);
     });
@@ -1112,13 +1131,23 @@ document.addEventListener('DOMContentLoaded', function () {
     initializeDepartmentAccordionSystemUser();
   }
 });
+
 function filterByDepartment() {
   const departmentFilter = document.getElementById('departmentFilter').value.toLowerCase();
   const tbody = document.querySelector('#accountsTable tbody');
   const rows = tbody.getElementsByTagName('tr');
+  const noResultsRow = document.getElementById('noResultsRow');
+
+  let visibleCount = 0;
 
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
+
+    // Skip the "no results" row
+    if (row.id === 'noResultsRow') {
+      continue;
+    }
+
     if (row.classList.contains('department-header-row')) {
       const dept = row.getAttribute('data-department');
       if (departmentFilter === '' || dept.toLowerCase().indexOf(departmentFilter) > -1) {
@@ -1142,15 +1171,27 @@ function filterByDepartment() {
         row.style.display = '';
         row.classList.add('department-collapsed');
         row.classList.remove('department-expanded');
+        visibleCount++;
       } else if (department.toLowerCase().indexOf(departmentFilter) > -1) {
         row.style.display = '';
         row.classList.remove('department-collapsed');
         row.classList.add('department-expanded');
+        visibleCount++;
       } else {
         row.style.display = 'none';
       }
     }
   }
+
+  // Show or hide "No user found" message
+  if (noResultsRow) {
+    if (visibleCount === 0 && departmentFilter !== '') {
+      noResultsRow.style.display = 'table-row';
+    } else {
+      noResultsRow.style.display = 'none';
+    }
+  }
+
   if (departmentFilter !== '') {
     const headers = tbody.querySelectorAll('.department-header-row');
     headers.forEach(header => {

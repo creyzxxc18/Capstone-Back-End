@@ -882,10 +882,10 @@ function initializeDepartmentAccordion() {
     const tbody = document.querySelector('#accountsTable tbody');
     if (!tbody) return;
 
-    // Get all rows
+    
     const allRows = Array.from(tbody.querySelectorAll('tr'));
 
-    // Group rows by department
+    
     const departmentGroups = {};
 
     allRows.forEach(row => {
@@ -899,15 +899,15 @@ function initializeDepartmentAccordion() {
         }
     });
 
-    // Clear tbody
+    
     tbody.innerHTML = '';
 
-    // Create department accordion rows
+    
     Object.keys(departmentGroups).sort().forEach(department => {
         const teacherRows = departmentGroups[department];
         const teacherCount = teacherRows.length;
 
-        // Create department header row
+        
         const deptHeaderRow = document.createElement('tr');
         deptHeaderRow.className = 'department-header-row';
         deptHeaderRow.setAttribute('data-department', department);
@@ -921,14 +921,14 @@ function initializeDepartmentAccordion() {
       </td>
     `;
 
-        // Add click event to toggle
+        
         deptHeaderRow.addEventListener('click', function () {
             toggleDepartment(department);
         });
 
         tbody.appendChild(deptHeaderRow);
 
-        // Add teacher rows (hidden by default)
+        
         teacherRows.forEach(row => {
             row.classList.add('teacher-row');
             row.classList.add('department-collapsed');
@@ -946,7 +946,7 @@ function toggleDepartment(department) {
     const isCollapsed = teacherRows[0].classList.contains('department-collapsed');
 
     if (isCollapsed) {
-        // Expand
+        
         teacherRows.forEach(row => {
             row.classList.remove('department-collapsed');
             row.classList.add('department-expanded');
@@ -954,7 +954,7 @@ function toggleDepartment(department) {
         toggleIcon.textContent = 'expand_more';
         headerRow.classList.add('department-active');
     } else {
-        // Collapse
+        
         teacherRows.forEach(row => {
             row.classList.add('department-collapsed');
             row.classList.remove('department-expanded');
@@ -964,11 +964,11 @@ function toggleDepartment(department) {
     }
 }
 
-// Initialize on page load - Add this to your DOMContentLoaded
+
 document.addEventListener('DOMContentLoaded', function () {
     initializeDepartmentAccordion();
 
-    // ... rest of your existing DOMContentLoaded code
+    
     const contactInput = document.getElementById('teacherContact');
     const editContactInput = document.getElementById('editTeacherContact');
 
@@ -991,20 +991,20 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 
-// Updated search function with accordion support
+
 function searchTable() {
     const input = document.getElementById('searchInput');
     const filter = input.value.toLowerCase();
     const tbody = document.querySelector('#accountsTable tbody');
     const rows = tbody.getElementsByTagName('tr');
 
-    // Track which departments have visible teachers
+    
     const visibleDepartments = new Set();
 
     for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
 
-        // Skip department header rows
+        
         if (row.classList.contains('department-header-row')) {
             continue;
         }
@@ -1013,14 +1013,14 @@ function searchTable() {
             continue;
         }
 
-        // Get cells
+        
         const cells = row.querySelectorAll('td');
         let employID = row.querySelector('.employID');
         let nameCell = null;
         let employStatus = row.querySelector('.user-employ-status');
         let userDepartment = row.querySelector('.user-department');
 
-        // Try to find name cell by checking the second td
+        
         if (cells.length >= 2) {
             nameCell = cells[1];
         }
@@ -1034,11 +1034,11 @@ function searchTable() {
         const status = employStatus ? (employStatus.textContent || employStatus.innerText).trim().toLowerCase() : "";
         const department = userDepartment ? (userDepartment.textContent || userDepartment.innerText).trim().toLowerCase() : "";
 
-        // Remove previous highlights
+        
         removeHighlights(row);
 
         if (filter === '') {
-            // If no filter, collapse all
+            
             row.classList.add('department-collapsed');
             row.classList.remove('department-expanded');
             row.style.display = '';
@@ -1053,13 +1053,13 @@ function searchTable() {
                 row.classList.remove('department-collapsed');
                 row.classList.add('department-expanded');
 
-                // Highlight matching text
+                
                 highlightText(employID, id, filter);
                 highlightText(nameCell, name, filter);
                 highlightText(employStatus, status, filter);
                 highlightText(userDepartment, department, filter);
 
-                // Track the department
+                
                 const dept = row.getAttribute('data-department');
                 if (dept) visibleDepartments.add(dept);
             } else {
@@ -1068,7 +1068,7 @@ function searchTable() {
         }
     }
 
-    // Update department headers
+    
     for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
         if (row.classList.contains('department-header-row')) {
@@ -1090,7 +1090,7 @@ function searchTable() {
     }
 }
 
-// Function to highlight matching text
+
 function highlightText(cell, cellText, filter) {
     if (!cell || !filter || !cellText.includes(filter)) return;
 
@@ -1101,7 +1101,7 @@ function highlightText(cell, cellText, filter) {
     cell.innerHTML = highlightedText;
 }
 
-// Function to remove highlights from a row
+
 function removeHighlights(row) {
     const highlights = row.querySelectorAll('.search-highlight');
     highlights.forEach(mark => {
@@ -1111,12 +1111,12 @@ function removeHighlights(row) {
     });
 }
 
-// Escape special regex characters
+
 function escapeRegex(string) {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-// Updated filterByDepartment with accordion support
+
 function filterByDepartment() {
     const departmentFilter = document.getElementById('departmentFilter').value.toLowerCase();
     const tbody = document.querySelector('#accountsTable tbody');
@@ -1125,7 +1125,7 @@ function filterByDepartment() {
     for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
 
-        // Handle department headers
+        
         if (row.classList.contains('department-header-row')) {
             const dept = row.getAttribute('data-department');
             if (departmentFilter === '' || dept.toLowerCase().indexOf(departmentFilter) > -1) {
@@ -1159,7 +1159,7 @@ function filterByDepartment() {
         }
     }
 
-    // Update department header icons
+    
     if (departmentFilter !== '') {
         const headers = tbody.querySelectorAll('.department-header-row');
         headers.forEach(header => {

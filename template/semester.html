@@ -80,6 +80,12 @@
                     </td>
                 </tr>
                 {% endfor %}
+                <!-- No results row (hidden by default) -->
+                <tr id="noResultsRow" style="display: none;">
+                    <td colspan="4" style="text-align: center; padding: 40px 20px; color: #666; font-size: 16px;">
+                        No user found
+                    </td>
+                </tr>
             </tbody>
         </table>
 
@@ -109,13 +115,9 @@
                     </tr>
                 </tbody>
             </table>
-
-
         </div>
     </div>
 </div>
-
-
 <div id="addClassModal"
     style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
     <div
@@ -173,10 +175,11 @@
 
             <div style="margin-bottom: 15px;">
                 <label for="school-year">School Year (e.g. 2024-2025): </label>
-                <input type="text" id="school-year" name="school-year" placeholder="e.g., 2024-2025" pattern="\d{4}-\d{4}"
-                    title="Format: YYYY-YYYY (e.g., 2024-2025)" required style="width: 100%; padding: 8px;">
+                <input type="text" id="school-year" name="school-year" placeholder="e.g., 2024-2025"
+                    pattern="\d{4}-\d{4}" title="Format: YYYY-YYYY (e.g., 2024-2025)" required
+                    style="width: 100%; padding: 8px;">
             </div>
-            
+
             <div style="margin-bottom: 15px;">
                 <label for="semester">Semester:</label>
                 <select id="semester" name="semester" required style="width: 100%; padding: 8px;">
@@ -276,17 +279,17 @@
         modal.style.display = 'none';
     }
 
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         if (event.target == modal) {
             closeModal();
         }
     }
 
-    qrForm.addEventListener('submit', async function(e) {
+    qrForm.addEventListener('submit', async function (e) {
         e.preventDefault();
-            
+
         const text = qrTextInput.value.trim();
-            
+
         if (!text) {
             showMessage('Please enter some text or URL', 'error');
             return;
@@ -301,7 +304,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken,  
+                    'X-CSRFToken': csrftoken,
                 },
                 body: JSON.stringify({ text: text })
             });
@@ -316,7 +319,7 @@
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
-                    
+
                 showMessage('QR Code generated successfully!', 'success');
                 setTimeout(() => {
                     closeModal();
@@ -342,48 +345,48 @@
     }
 
     function calculateSchoolYear() {
-            const today = new Date();
-            const currentYear = today.getFullYear();
-            const currentMonth = today.getMonth() + 1; 
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth() + 1;
 
-            let schoolYear;
+        let schoolYear;
 
-            if (currentMonth >= 2 && currentMonth <= 7) {
-                schoolYear = `${currentYear - 1}-${currentYear}`;
-            } else {
-                schoolYear = `${currentYear}-${currentYear + 1}`;
-            }
-
-            return schoolYear;
+        if (currentMonth >= 2 && currentMonth <= 7) {
+            schoolYear = `${currentYear - 1}-${currentYear}`;
+        } else {
+            schoolYear = `${currentYear}-${currentYear + 1}`;
         }
 
-        document.addEventListener('DOMContentLoaded', function () {
-            document.getElementById('school-year').value = calculateSchoolYear();
-        });
+        return schoolYear;
+    }
 
-        document.getElementById('semester').addEventListener('change', function () {
-            const semester = this.value;
-            const schoolYearInput = document.getElementById('school-year');
-            const today = new Date();
-            const currentYear = today.getFullYear();
-            const currentMonth = today.getMonth() + 1;
+    document.addEventListener('DOMContentLoaded', function () {
+        document.getElementById('school-year').value = calculateSchoolYear();
+    });
 
-            if (semester === '1st Semester') {
+    document.getElementById('semester').addEventListener('change', function () {
+        const semester = this.value;
+        const schoolYearInput = document.getElementById('school-year');
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        const currentMonth = today.getMonth() + 1;
 
-                if (currentMonth >= 7) {
-                    schoolYearInput.value = `${currentYear}-${currentYear + 1}`;
-                } else {
-                    schoolYearInput.value = `${currentYear - 1}-${currentYear}`;
-                }
-            } else if (semester === '2nd Semester') {
+        if (semester === '1st Semester') {
 
-                if (currentMonth >= 1 && currentMonth <= 6) {
-                    schoolYearInput.value = `${currentYear - 1}-${currentYear}`;
-                } else {
-                    schoolYearInput.value = `${currentYear}-${currentYear + 1}`;
-                }
+            if (currentMonth >= 7) {
+                schoolYearInput.value = `${currentYear}-${currentYear + 1}`;
+            } else {
+                schoolYearInput.value = `${currentYear - 1}-${currentYear}`;
             }
-        });
+        } else if (semester === '2nd Semester') {
+
+            if (currentMonth >= 1 && currentMonth <= 6) {
+                schoolYearInput.value = `${currentYear - 1}-${currentYear}`;
+            } else {
+                schoolYearInput.value = `${currentYear}-${currentYear + 1}`;
+            }
+        }
+    });
 </script>
 
 <script src="{% static 'js/semester.js' %}"></script>

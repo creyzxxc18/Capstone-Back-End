@@ -130,6 +130,12 @@ label {
   font-size: 16px;
 }
 
+.access-table {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 30px;
+}
+
 .table-wrapper {
   display: flex;
   justify-content: center;
@@ -350,6 +356,10 @@ tr:last-child td {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
+
+  .access-table {
+    padding: 0 20px;
+  }
 }
 
 .table-loading {
@@ -508,5 +518,9 @@ tr:last-child td {
 
   .access-icons-container {
     gap: 8px;
+  }
+
+  .access-table {
+    padding: 0 15px;
   }
 }

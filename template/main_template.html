@@ -1,26 +1,28 @@
 {% load static %}
 
-<!DOCTYPE html>
+<!doctype html>
 <html>
 
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta charset="utf-8" />
   <title>{% block title %}Admin Dashboard {% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/template.css' %}">
+  <link rel="stylesheet" href="{% static 'css/template.css' %}" />
   {% block stylesheet %} {% endblock %}
-  <link href='https://cdn.boxicons.com/fonts/basic/boxicons.min.css' rel='stylesheet'>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://cdn.boxicons.com/fonts/basic/boxicons.min.css" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
 
 <body>
   <div class="header">
     <div class="header-left">
-      <img src="{% static 'images/college-dept-logo-2.png' %}">
-      <h2>CSCQC | <span id="current-date-time"></span></h2>
+      <img src="{% static 'images/pcu_logo.png' %}" />
+      <h2>
+        Philippine Christian University | <span id="current-date-time"></span>
+      </h2>
     </div>
 
     <div class="header-right">
@@ -51,51 +53,53 @@
 
   <div class="sidebar">
     <div class="top">
-
       <a href="{% url 'dashboard' %}"
         class="main {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-        <i class='bx bx-dashboard'></i>
+        <i class="bx bx-dashboard"></i>
         Dashboard
       </a>
       <a href="{% url 'faculty_attendance' %}"
         class="main {% if request.resolver_match.url_name == 'faculty_attendance' %}active{% endif %}">
-        <i class='bx  bx-calendar-alt'></i>
+        <i class="bx bx-calendar-alt"></i>
         Faculty Attendance
       </a>
       <a href="{% url 'reports' %}" class="main {% if request.resolver_match.url_name == 'reports' %}active{% endif %}">
-        <i class='bx  bx-file-report'></i>
+        <i class="bx bx-file-report"></i>
         Analysis & Reports
       </a>
       <div class="dropdown">
         <div
           class="main dropdown-toggle {% if request.resolver_match.url_name == 'accounts' or request.resolver_match.url_name == 'semester_view' or request.resolver_match.url_name == 'school_year_view' %}active{% endif %}">
-          <i class='bx bx-cog'></i>
+          <i class="bx bx-cog"></i>
           Maintenance
         </div>
         <div class="dropdown-menu">
           <a href="{% url 'accounts' %}"
             class="{% if request.resolver_match.url_name == 'accounts' %}active{% endif %}">
-            <i class='bx bx-user'></i>
+            <i class="bx bx-user"></i>
             Accounts
           </a>
           <a href="{% url 'semester_view' %}"
             class="{% if request.resolver_match.url_name == 'semester_view' %}active{% endif %}">
-            <i class='bx bx-calendar'></i>
+            <i class="bx bx-calendar"></i>
             Adding Subjects
           </a>
           <a href="{% url 'school_year_view' %}"
             class="{% if request.resolver_match.url_name == 'school_year_view' %}active{% endif %}">
-            <i class='bx bx-calendar-event'></i>
+            <i class="bx bx-calendar-event"></i>
             School Year
           </a>
         </div>
       </div>
     </div>
     <div class="bot">
-      <a href="" class="logout" onclick="event.preventDefault(); openLogoutModal();">
-        <i class='bx  bx-arrow-in-right-square-half'></i>
+      <a href="" class="logout" onclick="
+            event.preventDefault();
+            openLogoutModal();
+          ">
+        <i class="bx bx-arrow-in-right-square-half"></i>
         Logout</a>
-      <form id="logout-form" method="post" action="{% url 'logout' %}" style="display:none;">
+      <form id="logout-form" method="post" action="{% url 'logout' %}" style="display: none">
         {% csrf_token %}
       </form>
     </div>
@@ -109,130 +113,126 @@
       <h3>Confirm Logout</h3>
       <p>Are you sure you want to logout?</p>
       <div class="logout-buttons">
-        <button onclick="closeLogoutModal()" class="btn-cancel">Cancel</button>
+        <button onclick="closeLogoutModal()" class="btn-cancel">
+          Cancel
+        </button>
         <button onclick="confirmLogout()" class="btn-logout">Logout</button>
       </div>
     </div>
   </div>
 
   <div class="maincontainer">
-    <div class="container1" style="background: #2D3748;">
-      {% block maincontent %}
-
-      {% endblock %}
+    <div class="container1" style="background: linear-gradient(to bottom, #012763 0%, #5a7fb8 99%)">
+      {% block maincontent %} {% endblock %}
     </div>
-    <div style="height: 10vh;"></div>
+    <div style="height: 10vh"></div>
   </div>
   <script>
-    const dropdown = document.querySelector('.dropdown');
-    const dropdownToggle = document.querySelector('.dropdown-toggle');
-    const dropdownMenu = document.querySelector('.dropdown-menu');
+    const dropdown = document.querySelector(".dropdown");
+    const dropdownToggle = document.querySelector(".dropdown-toggle");
+    const dropdownMenu = document.querySelector(".dropdown-menu");
 
     if (dropdown && dropdownToggle && dropdownMenu) {
       let isDropdownOpen = false;
       let closeTimeout;
 
-      dropdownToggle.addEventListener('click', function (e) {
+      dropdownToggle.addEventListener("click", function (e) {
         e.preventDefault();
         e.stopPropagation();
         isDropdownOpen = !isDropdownOpen;
 
         if (isDropdownOpen) {
-          dropdown.classList.add('active');
+          dropdown.classList.add("active");
         } else {
-          dropdown.classList.remove('active');
+          dropdown.classList.remove("active");
         }
       });
 
-      document.addEventListener('click', function (e) {
+      document.addEventListener("click", function (e) {
         if (!dropdown.contains(e.target)) {
-          dropdown.classList.remove('active');
+          dropdown.classList.remove("active");
           isDropdownOpen = false;
         }
       });
 
-      dropdown.addEventListener('mouseenter', function () {
+      dropdown.addEventListener("mouseenter", function () {
         clearTimeout(closeTimeout);
-        dropdown.classList.add('active');
+        dropdown.classList.add("active");
       });
 
-      dropdown.addEventListener('mouseleave', function () {
+      dropdown.addEventListener("mouseleave", function () {
         closeTimeout = setTimeout(function () {
-          dropdown.classList.remove('active');
+          dropdown.classList.remove("active");
           isDropdownOpen = false;
         }, 200);
       });
 
-      dropdownMenu.addEventListener('mouseenter', function () {
+      dropdownMenu.addEventListener("mouseenter", function () {
         clearTimeout(closeTimeout);
       });
     }
 
     function toggleSidebar() {
-        document.querySelector(".sidebar").classList.toggle("open");
-      }
+      document.querySelector(".sidebar").classList.toggle("open");
+    }
 
     function openLogoutModal() {
-        document.getElementById('logoutModal').classList.add('show');
-      }
+      document.getElementById("logoutModal").classList.add("show");
+    }
 
-      function closeLogoutModal() {
-        document.getElementById('logoutModal').classList.remove('show');
-      }
+    function closeLogoutModal() {
+      document.getElementById("logoutModal").classList.remove("show");
+    }
 
-      function confirmLogout() {
+    function confirmLogout() {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("user_data");
+      sessionStorage.setItem("loggedOut", "true");
+      closeLogoutModal();
+      fetch("{% url 'logout' %}", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": getCsrfToken(),
+          "Content-Type": "application/json",
+        },
+      }).finally(() => {
+        window.location.replace("/login/");
+      });
+    }
 
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          localStorage.removeItem('user_data');
-          sessionStorage.setItem('loggedOut', 'true');
-          closeLogoutModal();
-          fetch("{% url 'logout' %}", {
-            method: 'POST',
-            headers: {
-              'X-CSRFToken': getCsrfToken(),
-              'Content-Type': 'application/json',
-            },
-          }).finally(() => {
-
-            window.location.replace('/login/');
-          });
+    function getCsrfToken() {
+      const cookies = document.cookie.split(";");
+      for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split("=");
+        if (name === "csrftoken") {
+          return value;
         }
+      }
+      return "";
+    }
 
-        function getCsrfToken() {
-          const cookies = document.cookie.split(';');
-          for (let cookie of cookies) {
-            const [name, value] = cookie.trim().split('=');
-            if (name === 'csrftoken') {
-              return value;
-            }
-          }
-          return '';
-        }
+    function updateDateTime() {
+      const now = new Date();
+      const dateString = now.toLocaleDateString("en-US", {
+        weekday: "long",
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      const timeString = now.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+      document.getElementById("current-date-time").textContent =
+        `${dateString}, ${timeString}`;
+    }
 
-        function updateDateTime() {
-            const now = new Date();
-            const dateString = now.toLocaleDateString('en-US', {
-              weekday: 'long',
-              month: 'short',
-              day: 'numeric',
-              year: 'numeric'
-            });
-            const timeString = now.toLocaleTimeString('en-US', {
-              hour: '2-digit',
-              minute: '2-digit',
-              hour12: true
-            });
-            document.getElementById('current-date-time').textContent = `${dateString}, ${timeString}`;
-          }
-
-
-          updateDateTime();
-          setInterval(updateDateTime, 1000);
+    updateDateTime();
+    setInterval(updateDateTime, 1000);
   </script>
 </body>
-{% block script_content%}
-
-{% endblock %}
+{% block script_content%} {% endblock %}
 
 </html>

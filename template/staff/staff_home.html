@@ -17,54 +17,55 @@
 
 <body>
 
-<div class="hero-wrapper">
-  <div class="header-section">
-    <div class="logo-title">
-      <img src="{% static 'images/college-dept-logo-2.png' %}" alt="Logo" />
-      <h2>CSCQC College Faculty</h2>
+  <div class="hero-wrapper">
+    <div class="header-section">
+      <div class="logo-title">
+        <img src="{% static 'images/pcu_logo.png' %}" alt="Logo" />
+        <h2>Philippine Christian University</h2>
+      </div>
+      <div class="nav-link">
+        <ul>
+          <li><a href="{% url 'staff_dashboard' %}">Dashboard</a></li>
+          <li><a href="{% url 'staff_addsub' %}">Add Subject</a></li>
+          <li><a href="{% url 'staff_scheduling' %}">Faculty Scheduling</a></li>
+          <li><a href="{% url 'staff_tertiaryfaculty' %}">Tertiary Faculty</a></li>
+        </ul>
+      </div>
+      <button type="button" onclick="openLogoutModal()" class="logout-btn">LOGOUT</button>
+      <form id="logout-form" method="post" action="{% url 'logout' %}" style="display:none;">
+        {%csrf_token%}
+      </form>
     </div>
-    <div class="nav-link">
-      <ul>
-        <li><a href="{% url 'staff_dashboard' %}">Dashboard</a></li>
-        <li><a href="{% url 'staff_addsub' %}">Add Subject</a></li>
-        <li><a href="{% url 'staff_scheduling' %}">Faculty Scheduling</a></li>
-        <li><a href="{% url 'staff_tertiaryfaculty' %}">Tertiary Faculty</a></li>
-      </ul>
+
+    <div class="header-content">
+      <div class="overlay"></div>
+      <div class="text-content">
+        <h1>Welcome, {{ first_name}} {{ last_name }} </h1>
+        <h3>
+          This platform guarantees data integrity and speed for every task you handle. From verifying daily logs to
+          generating
+          comprehensive monthly reports. Manage attendance with effortless professionalism!
+        </h3>
+      </div>
     </div>
-    <button type="button" onclick="openLogoutModal()" class="logout-btn">LOGOUT</button>
-    <form id="logout-form" method="post" action="{% url 'logout' %}" style="display:none;">
-      {%csrf_token%}
-    </form>
   </div>
 
-  <div class="header-content">
-    <div class="overlay"></div>
-    <div class="text-content">
-      <h1>Welcome, {{ first_name}} {{ last_name }} </h1>
-      <h3>
-        This platform guarantees data integrity and speed for every task you handle. From verifying daily logs to generating
-        comprehensive monthly reports. Manage attendance with effortless professionalism!
-      </h3>
+  <div id="logoutModal" class="logout-modal">
+    <div class="logout-modal-content">
+      <div class="logout-icon">
+        <i class="fas fa-sign-out-alt"></i>
+      </div>
+      <h3>Confirm Logout</h3>
+      <p>Are you sure you want to logout?</p>
+      <div class="logout-buttons">
+        <button onclick="closeLogoutModal()" class="btn-cancel">Cancel</button>
+        <button onclick="confirmLogout()" class="btn-logout">Logout</button>
+      </div>
     </div>
   </div>
-</div>
 
-<div id="logoutModal" class="logout-modal">
-  <div class="logout-modal-content">
-    <div class="logout-icon">
-      <i class="fas fa-sign-out-alt"></i>
-    </div>
-    <h3>Confirm Logout</h3>
-    <p>Are you sure you want to logout?</p>
-    <div class="logout-buttons">
-      <button onclick="closeLogoutModal()" class="btn-cancel">Cancel</button>
-      <button onclick="confirmLogout()" class="btn-logout">Logout</button>
-    </div>
-  </div>
-</div>
-
-<script>
-  function openLogoutModal() {
+  <script>
+    function openLogoutModal() {
       document.getElementById('logoutModal').classList.add('show');
     }
 
@@ -73,41 +74,41 @@
     }
 
     function confirmLogout() {
-        // Clear JWT tokens
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        localStorage.removeItem('user_data');
+      // Clear JWT tokens
+      localStorage.removeItem('access_token');
+      localStorage.removeItem('refresh_token');
+      localStorage.removeItem('user_data');
 
-        // Set session flag for logout success message
-        sessionStorage.setItem('loggedOut', 'true');
+      // Set session flag for logout success message
+      sessionStorage.setItem('loggedOut', 'true');
 
-        // Close the modal
-        closeLogoutModal();
+      // Close the modal
+      closeLogoutModal();
 
-        // Call backend logout endpoint to invalidate session
-        fetch("{% url 'logout' %}", {
-          method: 'POST',
-          headers: {
-            'X-CSRFToken': getCsrfToken(),
-            'Content-Type': 'application/json',
-          },
-        }).finally(() => {
-          // Redirect to login page
-          window.location.replace('/login/');
-        });
-      }
+      // Call backend logout endpoint to invalidate session
+      fetch("{% url 'logout' %}", {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCsrfToken(),
+          'Content-Type': 'application/json',
+        },
+      }).finally(() => {
+        // Redirect to login page
+        window.location.replace('/login/');
+      });
+    }
 
-      function getCsrfToken() {
-        const cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-          const [name, value] = cookie.trim().split('=');
-          if (name === 'csrftoken') {
-            return value;
-          }
+    function getCsrfToken() {
+      const cookies = document.cookie.split(';');
+      for (let cookie of cookies) {
+        const [name, value] = cookie.trim().split('=');
+        if (name === 'csrftoken') {
+          return value;
         }
-        return '';
       }
-</script>
+      return '';
+    }
+  </script>
 </body>
 
 </html>

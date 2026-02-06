@@ -38,7 +38,7 @@
   gap: 5px;
 }
 
-.left-dashboard > div:nth-child(1) {
+.left-dashboard>div:nth-child(1) {
   grid-area: header;
   text-align: left;
   font-size: 22px;
@@ -51,19 +51,19 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.left-dashboard > div:nth-child(2) {
+.left-dashboard>div:nth-child(2) {
   grid-area: content1;
 }
 
-.left-dashboard > div:nth-child(3) {
+.left-dashboard>div:nth-child(3) {
   grid-area: content2;
 }
 
-.left-dashboard > div:nth-child(4) {
+.left-dashboard>div:nth-child(4) {
   grid-area: content3;
 }
 
-.left-dashboard > div:nth-child(5) {
+.left-dashboard>div:nth-child(5) {
   grid-area: pew;
   text-align: left;
   font-size: 22px;
@@ -76,11 +76,11 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.left-dashboard > div:nth-child(6) {
+.left-dashboard>div:nth-child(6) {
   grid-area: graph;
 }
 
-.left-dashboard > div:nth-child(7) {
+.left-dashboard>div:nth-child(7) {
   grid-area: aew;
   text-align: left;
   font-size: 22px;
@@ -93,12 +93,12 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.left-dashboard > div:nth-child(8) {
+.left-dashboard>div:nth-child(8) {
   grid-area: detail;
 }
 
-.left-dashboard > div,
-.right-dashboard > div {
+.left-dashboard>div,
+.right-dashboard>div {
   background: #edf2f7;
   border-radius: 12px;
   margin-left: 10px;
@@ -306,15 +306,15 @@ svg path {
   gap: 5px;
 }
 
-.right-dashboard > div:nth-child(1) {
+.right-dashboard>div:nth-child(1) {
   grid-area: content1;
 }
 
-.right-dashboard > div:nth-child(2) {
+.right-dashboard>div:nth-child(2) {
   grid-area: content2;
 }
 
-.right-dashboard > div:nth-child(3) {
+.right-dashboard>div:nth-child(3) {
   grid-area: title;
   text-align: left;
   font-size: 22px;
@@ -327,7 +327,7 @@ svg path {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.right-dashboard > div:nth-child(4) {
+.right-dashboard>div:nth-child(4) {
   grid-area: bar-graph;
 }
 

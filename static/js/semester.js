@@ -48,9 +48,15 @@ function searchTable() {
     const filter = input.value.toLowerCase();
     const tbody = document.querySelector('#professorTable tbody');
     const rows = tbody.getElementsByTagName('tr');
+    const noResultsRow = document.getElementById('noResultsRow');
+
+    let visibleCount = 0;
 
     for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
+        if (row.id === 'noResultsRow') {
+            continue;
+        }
 
         if (row.querySelector('td[colspan]')) {
             continue;
@@ -66,17 +72,23 @@ function searchTable() {
 
         if (name.indexOf(filter) > -1) {
             row.style.display = '';
+            visibleCount++;
         } else if (id.indexOf(filter) > -1) {
             row.style.display = '';
+            visibleCount++;
         } else if (department.indexOf(filter) > -1) {
             row.style.display = '';
+            visibleCount++;
         } else {
             row.style.display = 'none';
         }
     }
+    if (visibleCount === 0) {
+        noResultsRow.style.display = '';
+    } else {
+        noResultsRow.style.display = 'none';
+    }
 }
-
-
 function viewClasses(teacherId, teacherName) {
     selectedProfessorId = teacherId;
 
@@ -101,8 +113,6 @@ function viewClasses(teacherId, teacherName) {
         alert("Error loading classes.");
     });
 }
-
-
 function backToProfessorList() {
     const professorTable = document.getElementById("professorTable");
     const classesSection = document.getElementById("classesSection");
@@ -187,8 +197,6 @@ function displayClasses(classes) {
         tableBody.appendChild(row);
     });
 }
-
-
 function deleteCourse(classId, btn) {
     if (!confirm("Are you sure you want to delete this class?")) return;
 
@@ -213,8 +221,6 @@ function deleteCourse(classId, btn) {
             alert("Error deleting class.");
         });
 }
-
-
 function importExcel() {
     const input = document.createElement("input");
     input.type = "file";
@@ -239,8 +245,6 @@ function importExcel() {
             .then(data => {
                 if (data.success) {
                     let message = data.message;
-
-
                     if (data.skipped && data.skipped.length > 0) {
                         message += "\n\n⚠️ Skipped classes (schedule conflicts):\n";
                         data.skipped.forEach(skipped => {
@@ -271,15 +275,11 @@ function importAllTeachersExcel() {
     input.onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
-
         const maxSize = 10 * 1024 * 1024;
         if (file.size > maxSize) {
             showNotification("File is too large. Maximum size is 10MB.", "error");
             return;
         }
-
-
         const allowedTypes = [
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             "application/vnd.ms-excel"
@@ -288,14 +288,10 @@ function importAllTeachersExcel() {
             showNotification("Invalid file type. Please upload an Excel file.", "error");
             return;
         }
-
-
         const confirmed = confirm(
             "This will import schedules for all teachers in the Excel file. Continue?"
         );
         if (!confirmed) return;
-
-
         const loadingOverlay = showLoading("Processing schedules for all teachers...");
 
         try {
@@ -312,21 +308,15 @@ function importAllTeachersExcel() {
 
             console.log("Response status:", response.status);
             console.log("Response headers:", response.headers);
-
-
             const data = await response.json();
             console.log("Response data:", data);
 
             if (!response.ok) {
 
                 let errorMessage = `Server error: ${response.status} ${response.statusText}`;
-
-
                 if (data.error) {
                     errorMessage += `\n\nDetails: ${data.error}`;
                 }
-
-
                 if (data.errors && data.errors.length > 0) {
                     errorMessage += `\n\nErrors:\n${data.errors.join('\n')}`;
                 }
@@ -339,8 +329,6 @@ function importAllTeachersExcel() {
             if (data.success) {
                 let message = buildImportSummary(data);
                 showNotification(message, data.has_errors ? "warning" : "success");
-
-
                 if (typeof viewClasses === 'function' && selectedProfessorId) {
                     viewClasses(
                         selectedProfessorId,
@@ -355,8 +343,6 @@ function importAllTeachersExcel() {
             }
         } catch (error) {
             console.error("Error importing schedules:", error);
-
-
             let errorMsg = "Failed to upload file.\n\n";
             errorMsg += `Error: ${error.message}\n\n`;
             errorMsg += "Please check:\n";
@@ -372,16 +358,10 @@ function importAllTeachersExcel() {
 
     input.click();
 }
-
-
 function buildImportSummary(data) {
     const parts = [];
-
-
     parts.push(`✓ Bulk Import Complete\n`);
     parts.push(`─────────────────────────`);
-
-
     parts.push(`\n📊 Overall Statistics:`);
     parts.push(`   • Teachers processed: ${data.teachers_processed}`);
     parts.push(`   • Total classes imported: ${data.total_imported}`);
@@ -389,8 +369,6 @@ function buildImportSummary(data) {
     if (data.total_skipped > 0) {
         parts.push(`   • Total classes skipped: ${data.total_skipped}`);
     }
-
-
     if (data.teacher_results && data.teacher_results.length > 0) {
         parts.push(`\n👥 Per-Teacher Breakdown:`);
 
@@ -403,8 +381,6 @@ function buildImportSummary(data) {
             }
         });
     }
-
-
     if (data.skipped_details && data.skipped_details.length > 0) {
         parts.push(`\n\n⚠️ Skipped Classes (Conflicts):`);
 
@@ -414,8 +390,6 @@ function buildImportSummary(data) {
             );
         });
     }
-
-
     if (data.errors && data.errors.length > 0) {
         parts.push(`\n\n❌ Errors:`);
         data.errors.forEach(error => {
@@ -465,14 +439,12 @@ function showNotification(message, type = "info") {
             <div style="flex: 1;">
                 <p style="margin: 0; font-weight: 500;">${message}</p>
             </div>
-            <button onclick="this.parentElement.parentElement.remove()" 
-                    style="background: none; border: none; font-size: 20px; 
-                    cursor: pointer; padding: 0; color: ${color.text}; 
+            <button onclick="this.parentElement.parentElement.remove()"
+                    style="background: none; border: none; font-size: 20px;
+                    cursor: pointer; padding: 0; color: ${color.text};
                     opacity: 0.7;">×</button>
         </div>
     `;
-
-
     const style = document.createElement("style");
     style.textContent = `
         @keyframes slideIn {
@@ -489,8 +461,6 @@ function showNotification(message, type = "info") {
     document.head.appendChild(style);
 
     document.body.appendChild(modal);
-
-
     const timeout = message.length > 100 ? 10000 : 5000;
     setTimeout(() => {
         if (modal.parentNode) {
@@ -537,8 +507,6 @@ function showLoading(message = "Loading...") {
         "></div>
         <p style="margin: 0; font-size: 16px; color: #333;">${message}</p>
     `;
-
-
     const style = document.createElement("style");
     style.textContent = `
         @keyframes spin {
@@ -586,8 +554,6 @@ function closeAddClassModal() {
         console.warn("⚠️ Form 'addClassForm' not found");
     }
 }
-
-
 function submitAddClass(event) {
     event.preventDefault();
 
@@ -777,9 +743,15 @@ function filterByDepartment() {
     const departmentFilter = document.getElementById('departmentFilter').value.toLowerCase();
     const tbody = document.querySelector('#professorTable tbody');
     const rows = tbody.getElementsByTagName('tr');
+    const noResultsRow = document.getElementById('noResultsRow');
+
+    let visibleCount = 0;
 
     for (let i = 0; i < rows.length; i++) {
         const row = rows[i];
+        if (row.id === 'noResultsRow') {
+            continue;
+        }
 
         if (row.querySelector('td[colspan]')) {
             continue;
@@ -792,9 +764,15 @@ function filterByDepartment() {
 
             if (departmentFilter === '' || department.toLowerCase().indexOf(departmentFilter) > -1) {
                 row.style.display = '';
+                visibleCount++;
             } else {
                 row.style.display = 'none';
             }
         }
+    }
+    if (visibleCount === 0) {
+        noResultsRow.style.display = '';
+    } else {
+        noResultsRow.style.display = 'none';
     }
 }

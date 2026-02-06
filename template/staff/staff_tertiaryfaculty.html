@@ -73,126 +73,126 @@
                 </tr>
                 {% endfor %}
             </tbody>
-            </table>
+        </table>
+    </div>
+
+    <div class="modal" id="teacherModal">
+        <div class="modal-content">
+            <h3>Register User</h3>
+
+            <label for="user-type"><span style="color: red;">* </span> User Type:</label>
+            <select required id="user-type" onchange="toggleUserTypeFields()">
+                <option value="TertiaryFaculty" selected>Tertiary Faculty</option>
+            </select>
+
+            <label for="employID"><span style="color: red;">* </span> Employee ID</label>
+            <input required type="text" id="employID" placeholder="Enter employee ID" maxlength="8" minlength="8">
+
+            <label for="teacherEmail"><span style="color: red;">* </span> Email Address</label>
+            <input required type="email" id="teacherEmail" placeholder="Enter email address">
+
+            <label for="teacherFirst"><span style="color: red;">* </span> First Name</label>
+            <input required type="text" id="teacherFirst" placeholder="Enter first name">
+
+            <label for="teacherMiddle">Middle Name (Optional)</label>
+            <input type="text" id="teacherMiddle" placeholder="Enter middle name">
+
+            <label for="teacherLast"><span style="color: red;">* </span>Last Name </label>
+            <input required type="text" id="teacherLast" placeholder="Enter last name">
+
+            <label for="teacherContact"><span style="color: red;">*</span>Contact Number</label>
+            <input required type="tel" id="teacherContact" placeholder="Enter contact number" maxlength="11"
+                pattern="[0-9]{11}" title="Please enter exactly 11 digits">
+            <div id="facultyFields" style="display: none;">
+                <label for="teacherDept"><span style="color: red;">* </span>Department</label>
+                <select required id="teacherDept">
+                    <option value="" disabled selected>Select Department</option>
+                    <option value="Information Technology">Information Technology</option>
+                    <option value="Criminology">Criminology</option>
+                    <option value="Business Administration">Business Administration</option>
+                    <option value="Tourism Management">Tourism Management</option>
+                    <option value="Basic Education">Basic Education</option>
+                </select>
+                <label for="employmentStatus"><span style="color: red;">* </span>Employment Status</label>
+                <select id="employmentStatus">
+                    <option value="" disabled selected>Select Status</option>
+                    <option value="Regular">Regular</option>
+                    <option value="Full-time">Full-time</option>
+                    <option value="Part-time">Part-time</option>
+                </select>
+
             </div>
+            <div class="modal-actions">
+                <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+                <button class="save-btn" onclick="saveTeacher()">Add User</button>
+            </div>
+            <div style="margin-bottom: 20px;">
 
-<div class="modal" id="teacherModal">
-    <div class="modal-content">
-        <h3>Register User</h3>
+            </div>
+        </div>
+    </div>
+    <!-- Edit User Modal -->
+    <div class="modal" id="editTeacherModal">
+        <div class="modal-content">
+            <h3>Edit User Information</h3>
 
-        <label for="user-type"><span style="color: red;">* </span> User Type:</label>
-        <select required id="user-type" onchange="toggleUserTypeFields()">
-            <option value="TertiaryFaculty" selected>Tertiary Faculty</option>
-        </select>
+            <input type="hidden" id="editTeacherId">
+            <input type="hidden" id="editUserType">
 
-        <label for="employID"><span style="color: red;">* </span> Employee ID</label>
-        <input required type="text" id="employID" placeholder="Enter employee ID" maxlength="8" minlength="8">
+            <label for="editTeacherFirst">First Name <span style="color: red;">*</span></label>
+            <input required type="text" id="editTeacherFirst" placeholder="Enter first name">
 
-        <label for="teacherEmail"><span style="color: red;">* </span> Email Address</label>
-        <input required type="email" id="teacherEmail" placeholder="Enter email address">
+            <label for="editTeacherMiddle">Middle Name (Optional)</label>
+            <input type="text" id="editTeacherMiddle" placeholder="Enter middle name">
 
-        <label for="teacherFirst"><span style="color: red;">* </span> First Name</label>
-        <input required type="text" id="teacherFirst" placeholder="Enter first name">
+            <label for="editTeacherLast">Last Name <span style="color: red;">*</span></label>
+            <input required type="text" id="editTeacherLast" placeholder="Enter last name">
 
-        <label for="teacherMiddle">Middle Name (Optional)</label>
-        <input type="text" id="teacherMiddle" placeholder="Enter middle name">
+            <label for="editTeacherEmail">Email Address<span style="color: red;">*</span></label>
+            <input required type="email" id="editTeacherEmail" placeholder="Enter email address" readonly
+                style="background-color: #f0f0f0; cursor: not-allowed;">
 
-        <label for="teacherLast"><span style="color: red;">* </span>Last Name </label>
-        <input required type="text" id="teacherLast" placeholder="Enter last name">
+            <label for="editTeacherContact">Contact Number <span style="color: red;">*</span></label>
+            <input required type="tel" id="editTeacherContact" placeholder="Enter contact number" minlength="11"
+                maxlength="11" pattern="[0-9]{11}" title="Please enter exactly 11 digits">
 
-        <label for="teacherContact"><span style="color: red;">*</span>Contact Number</label>
-        <input required type="tel" id="teacherContact" placeholder="Enter contact number" maxlength="11"
-            pattern="[0-9]{11}" title="Please enter exactly 11 digits">
-        <div id="facultyFields" style="display: none;">
-            <label for="teacherDept"><span style="color: red;">* </span>Department</label>
-            <select required id="teacherDept">
-                <option value="" disabled selected>Select Department</option>
+            <label for="editTeacherDept">Department <span style="color: red;">*</span></label>
+            <select required id="editTeacherDept">
+                <option value="" disabled>Select Department</option>
                 <option value="Information Technology">Information Technology</option>
                 <option value="Criminology">Criminology</option>
                 <option value="Business Administration">Business Administration</option>
                 <option value="Tourism Management">Tourism Management</option>
                 <option value="Basic Education">Basic Education</option>
             </select>
-            <label for="employmentStatus"><span style="color: red;">* </span>Employment Status</label>
-            <select id="employmentStatus">
-                <option value="" disabled selected>Select Status</option>
-                <option value="Regular">Regular</option>
-                <option value="Full-time">Full-time</option>
-                <option value="Part-time">Part-time</option>
-            </select>
 
-        </div>
-        <div class="modal-actions">
-            <button class="cancel-btn" onclick="closeModal()">Cancel</button>
-            <button class="save-btn" onclick="saveTeacher()">Add User</button>
-        </div>
-        <div style="margin-bottom: 20px;">
+            <!-- Fields for Tertiary Faculty Only -->
+            <div id="editFacultyFields" style="display: none;">
+                <label for="editEmploymentStatus">Employment Status <span style="color: red;">*</span></label>
+                <select id="editEmploymentStatus">
+                    <option value="" disabled>Select Status</option>
+                    <option value="Full-time">Full-time</option>
+                    <option value="Part-time">Part-time</option>
+                </select>
 
-        </div>
-    </div>
-</div>
-<!-- Edit User Modal -->
-<div class="modal" id="editTeacherModal">
-    <div class="modal-content">
-        <h3>Edit User Information</h3>
+                <label for="editEmployID">Employee ID <span style="color: red;">*</span></label>
+                <input type="text" id="editEmployID" placeholder="Enter employee ID" maxlength="8" minlength="8">
+            </div>
 
-        <input type="hidden" id="editTeacherId">
-        <input type="hidden" id="editUserType">
+            <!-- Fields for System Users Only -->
+            <div id="editSystemUserFields" style="display: none;">
+                <label for="editUserRole">User Role <span style="color: red;">*</span></label>
+                <select id="editUserRole">
+                    <option value="staff/checker">Staff/Checker</option>
+                    <option value="admin">Admin</option>
+                </select>
+            </div>
 
-        <label for="editTeacherFirst">First Name <span style="color: red;">*</span></label>
-        <input required type="text" id="editTeacherFirst" placeholder="Enter first name">
-
-        <label for="editTeacherMiddle">Middle Name (Optional)</label>
-        <input type="text" id="editTeacherMiddle" placeholder="Enter middle name">
-
-        <label for="editTeacherLast">Last Name <span style="color: red;">*</span></label>
-        <input required type="text" id="editTeacherLast" placeholder="Enter last name">
-
-        <label for="editTeacherEmail">Email Address<span style="color: red;">*</span></label>
-        <input required type="email" id="editTeacherEmail" placeholder="Enter email address" readonly
-            style="background-color: #f0f0f0; cursor: not-allowed;">
-
-        <label for="editTeacherContact">Contact Number <span style="color: red;">*</span></label>
-        <input required type="tel" id="editTeacherContact" placeholder="Enter contact number" minlength="11"
-            maxlength="11" pattern="[0-9]{11}" title="Please enter exactly 11 digits">
-
-        <label for="editTeacherDept">Department <span style="color: red;">*</span></label>
-        <select required id="editTeacherDept">
-            <option value="" disabled>Select Department</option>
-            <option value="Information Technology">Information Technology</option>
-            <option value="Criminology">Criminology</option>
-            <option value="Business Administration">Business Administration</option>
-            <option value="Tourism Management">Tourism Management</option>
-            <option value="Basic Education">Basic Education</option>
-        </select>
-
-        <!-- Fields for Tertiary Faculty Only -->
-        <div id="editFacultyFields" style="display: none;">
-            <label for="editEmploymentStatus">Employment Status <span style="color: red;">*</span></label>
-            <select id="editEmploymentStatus">
-                <option value="" disabled>Select Status</option>
-                <option value="Full-time">Full-time</option>
-                <option value="Part-time">Part-time</option>
-            </select>
-
-            <label for="editEmployID">Employee ID <span style="color: red;">*</span></label>
-            <input type="text" id="editEmployID" placeholder="Enter employee ID" maxlength="8" minlength="8">
-        </div>
-
-        <!-- Fields for System Users Only -->
-        <div id="editSystemUserFields" style="display: none;">
-            <label for="editUserRole">User Role <span style="color: red;">*</span></label>
-            <select id="editUserRole">
-                <option value="staff/checker">Staff/Checker</option>
-                <option value="admin">Admin</option>
-            </select>
-        </div>
-
-        <div class="modal-actions">
-            <button class="cancel-btn" onclick="closeEditModal()">Cancel</button>
-            <button class="save-btn" onclick="updateTeacher()">Update User</button>
+            <div class="modal-actions">
+                <button class="cancel-btn" onclick="closeEditModal()">Cancel</button>
+                <button class="save-btn" onclick="updateTeacher()">Update User</button>
+            </div>
         </div>
     </div>
-</div>
-<script src="{% static 'js/staff_tertiary_faculty.js' %}"></script>
-{% endblock %}
+    <script src="{% static 'js/staff_tertiary_faculty.js' %}"></script>
+    {% endblock %}

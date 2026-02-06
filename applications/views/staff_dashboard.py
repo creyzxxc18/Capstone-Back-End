@@ -87,9 +87,9 @@ def staff_dashboard_view(request):
         "week_end": week_end,
         # performers
         "top_performer": performers["top_performer"],
-        "top_rankers": performers["top_rankers"],
+        "top_rankers": performers.get("top_rankers", []),
         "poor_performer": performers["poor_performer"],
-        "poor_rankers": performers["poor_rankers"],
+        "poor_rankers": performers.get("poor_rankers", []),
         # department
         "department": department_performers["all_departments"],
         "ticks": department_performers["ticks"],

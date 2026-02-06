@@ -36,7 +36,7 @@
             <button class="import-btn" onclick="importAllTeachersExcel()">
                 Import Classes
             </button>
-        
+
             <button class="open-modal-btn" onclick="openModal()">Create QR Code</button>
         </div>
 
@@ -173,10 +173,11 @@
 
             <div style="margin-bottom: 15px;">
                 <label for="school-year">School Year (e.g. 2024-2025): </label>
-                <input type="text" id="school-year" name="school-year" placeholder="e.g., 2024-2025" pattern="\d{4}-\d{4}"
-                    title="Format: YYYY-YYYY (e.g., 2024-2025)" required style="width: 100%; padding: 8px;">
+                <input type="text" id="school-year" name="school-year" placeholder="e.g., 2024-2025"
+                    pattern="\d{4}-\d{4}" title="Format: YYYY-YYYY (e.g., 2024-2025)" required
+                    style="width: 100%; padding: 8px;">
             </div>
-            
+
             <div style="margin-bottom: 15px;">
                 <label for="semester">Semester:</label>
                 <select id="semester" name="semester" required style="width: 100%; padding: 8px;">
@@ -277,17 +278,17 @@
         modal.style.display = 'none';
     }
 
-    window.onclick = function(event) {
+    window.onclick = function (event) {
         if (event.target == modal) {
             closeModal();
         }
     }
 
-    qrForm.addEventListener('submit', async function(e) {
+    qrForm.addEventListener('submit', async function (e) {
         e.preventDefault();
-            
+
         const text = qrTextInput.value.trim();
-            
+
         if (!text) {
             showMessage('Please enter some text or URL', 'error');
             return;
@@ -302,7 +303,7 @@
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken,  
+                    'X-CSRFToken': csrftoken,
                 },
                 body: JSON.stringify({ text: text })
             });
@@ -317,7 +318,7 @@
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
-                    
+
                 showMessage('QR Code generated successfully!', 'success');
                 setTimeout(() => {
                     closeModal();
@@ -345,7 +346,7 @@
     function calculateSchoolYear() {
         const today = new Date();
         const currentYear = today.getFullYear();
-        const currentMonth = today.getMonth() + 1; 
+        const currentMonth = today.getMonth() + 1;
 
         let schoolYear;
 

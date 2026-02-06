@@ -12,7 +12,7 @@
 
 {% block maincontent %}
 <div class="container">
-  <h2 class="container-title">Accounts</h2>
+  <h2 class="container-title">School Year</h2>
   <p class="date-value">{% now "F Y" %}</p>
   <!-- Filters -->
   <div class="filters">
@@ -75,6 +75,12 @@
         </td>
       </tr>
       {%endfor%}
+      <!-- No results row (hidden by default) -->
+      <tr id="noResultsRow" style="display: none;">
+        <td colspan="4" style="text-align: center; padding: 40px 20px; color: #666; font-size: 16px;">
+          No records found.
+        </td>
+      </tr>
     </tbody>
   </table>
 </div>

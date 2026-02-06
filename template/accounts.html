@@ -43,33 +43,35 @@
     </button>
 
     <form id="importUserForm" enctype="multipart/form-data">
-        <input type="hidden" name="csrfmiddlewaretoken" value="your-csrf-token">
-        <input type="file" id="importUserFile" name="file" accept=".xlsx,.xls" onchange="handleFileSelect(event)">
+      <input type="hidden" name="csrfmiddlewaretoken" value="your-csrf-token">
+      <input type="file" id="importUserFile" name="file" accept=".xlsx,.xls" onchange="handleFileSelect(event)">
 
-        <label for="importUserFile" class="import-user-btn">
-            <span class="material-symbols-outlined">upload_file</span>
-            Import Users
-        </label>
+      <label for="importUserFile" class="import-user-btn">
+        <span class="material-symbols-outlined">upload_file</span>
+        Import Users
+      </label>
 
-        <span class="file-selected" id="fileSelected"></span>
+      <span class="file-selected" id="fileSelected"></span>
     </form>
 
     <!-- Import results modal -->
     <div id="importResultsModal">
-        <div class="modal-header">
-            <h4>Import Results</h4>
-            <button onclick="closeImportResults()" class="close-btn">&times;</button>
-        </div>
-        <div id="importResultsContent"></div>
+      <div class="modal-header">
+        <h4>Import Results</h4>
+        <button onclick="closeImportResults()" class="close-btn">&times;</button>
+      </div>
+      <div id="importResultsContent"></div>
     </div>
 
     <!-- Simple results modal/notification -->
-    <div id="importResultsModal" style="display: none; position: fixed; top: 20px; right: 20px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 400px; z-index: 1000;">
-        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
-            <h4 style="margin: 0;">Import Results</h4>
-            <button onclick="closeImportResults()" style="border: none; background: none; cursor: pointer; font-size: 20px;">&times;</button>
-        </div>
-        <div id="importResultsContent"></div>
+    <div id="importResultsModal"
+      style="display: none; position: fixed; top: 20px; right: 20px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 400px; z-index: 1000;">
+      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+        <h4 style="margin: 0;">Import Results</h4>
+        <button onclick="closeImportResults()"
+          style="border: none; background: none; cursor: pointer; font-size: 20px;">&times;</button>
+      </div>
+      <div id="importResultsContent"></div>
     </div>
   </div>
 
@@ -90,7 +92,7 @@
         {% for professor in professors %}
         <tr data-professor-id="{{ professor.id }}" data-user-type="{{ professor.user_type }}"
           data-first-name="{{ professor.firstName }}" data-mid-name="{{ professor.midName }}"
-          data-last-name="{{ professor.lastName }}"data-department="{{ professor.department }}"
+          data-last-name="{{ professor.lastName }}" data-department="{{ professor.department }}"
           data-employment-status="{{ professor.employmentStatus }}" data-employ-id="{{ professor.employID }}">
           <td class="employID">{{professor.employID}}</td>
           <td class="user_name">{{ professor.full_name }}</td>
@@ -106,221 +108,223 @@
             </button>
           </td>
         </tr>
-        {% empty %}
-        <tr>
-          <td colspan="6">No users found</td>
-        </tr>
         {% endfor %}
+        <tr class="no-results-message" style="display: none;">
+          <td colspan="5" class="no-results-cell">
+            No users found
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
-{% elif current_filter == 'SystemUser' %}
-<div class="accounts-table SystemUser">
-  <table id="accountsTable">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Role</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for professor in professors %}
-      <tr data-user-type="{{ professor.user_type }}"
-        data-first-name="{{ professor.firstName }}" data-mid-name="{{ professor.midName }}"
-        data-last-name="{{ professor.lastName }}" data-department="{{ professor.department }}"
-        data-employment-status="{{ professor.employmentStatus }}" data-employ-id="{{ professor.employID }}"
-        data-is-locked="{{ professor.is_locked }}">
-        <td class="user_name">{{ professor.full_name }}</td>
-        <td class="user-role">{{ professor.userRole }}</td>
-        <td class="user-status">
-          {% if professor.is_locked %}
-          <span style="color: #d32f2f; font-weight: bold;">LOCKED</span>
-          {% else %}
-          <span style="color: #2e7d32;">Active</span>
-          {% endif %}
-        </td>
-        <td class="actions">
-          <!-- Unlock/Lock Button -->
-          <button title="{% if professor.is_locked %}Unlock Account{% else %}Account Active{% endif %}"
-            onclick="toggleAccountLock('{{ professor.id }}', {{ professor.is_locked|lower }})" class="lock-toggle-btn"
-            style="background-color: {% if professor.is_locked %}#d32f2f{% else %}#9e9e9e{% endif %};" {% if not professor.is_locked %}disabled{% endif %}>
-            <span class="material-symbols-outlined">
-              {% if professor.is_locked %}lock{% else %}lock_open{% endif %}
-            </span>
-          </button>
+  {% elif current_filter == 'SystemUser' %}
+  <div class="accounts-table SystemUser">
+    <table id="accountsTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for professor in professors %}
+        <tr data-user-type="{{ professor.user_type }}" data-first-name="{{ professor.firstName }}"
+          data-mid-name="{{ professor.midName }}" data-last-name="{{ professor.lastName }}"
+          data-department="{{ professor.department }}" data-employment-status="{{ professor.employmentStatus }}"
+          data-employ-id="{{ professor.employID }}" data-is-locked="{{ professor.is_locked }}">
+          <td class="user_name">{{ professor.full_name }}</td>
+          <td class="user-role">{{ professor.userRole }}</td>
+          <td class="user-status">
+            {% if professor.is_locked %}
+            <span style="color: #d32f2f; font-weight: bold;">LOCKED</span>
+            {% else %}
+            <span style="color: #2e7d32;">Active</span>
+            {% endif %}
+          </td>
+          <td class="actions">
+            <!-- Unlock/Lock Button -->
+            <button title="{% if professor.is_locked %}Unlock Account{% else %}Account Active{% endif %}"
+              onclick="toggleAccountLock('{{ professor.id }}', {{ professor.is_locked|lower }})" class="lock-toggle-btn"
+              style="background-color: {% if professor.is_locked %}#d32f2f{% else %}#9e9e9e{% endif %};" {% if not
+              professor.is_locked %}disabled{% endif %}>
+              <span class="material-symbols-outlined">
+                {% if professor.is_locked %}lock{% else %}lock_open{% endif %}
+              </span>
+            </button>
 
-          <button title="Reset-password"
-            onclick="resetPassword('{{professor.id}}', '{{professor.email}}', '{{professor.user_type}}')">
-            <span class="material-symbols-outlined">encrypted</span>
-          </button>
-          <button title="Edit-info" class="edit-btn-action">
-            <span class="material-symbols-outlined">edit</span>
-          </button>
-          <button title="Delete" onclick="deleteUser('{{ professor.id }}', this)">
-            <span class="material-symbols-outlined">delete</span>
-          </button>
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="7">No users found</td> <!-- Update colspan -->
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-{%endif%}
-<!-- Add User Modal -->
-<div class="modal" id="teacherModal">
-  <div class="modal-content">
-    <h3>Register User</h3>
+            <button title="Reset-password"
+              onclick="resetPassword('{{professor.id}}', '{{professor.email}}', '{{professor.user_type}}')">
+              <span class="material-symbols-outlined">encrypted</span>
+            </button>
+            <button title="Edit-info" class="edit-btn-action">
+              <span class="material-symbols-outlined">edit</span>
+            </button>
+            <button title="Delete" onclick="deleteUser('{{ professor.id }}', this)">
+              <span class="material-symbols-outlined">delete</span>
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+        <tr class="no-results-message" style="display: none;">
+          <td colspan="4" class="no-results-cell">
+            No users found
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  {%endif%}
+  <!-- Add User Modal -->
+  <div class="modal" id="teacherModal">
+    <div class="modal-content">
+      <h3>Register User</h3>
 
-    <label for="user-type"><span style="color: red;">*</span> User Type:</label>
-    <select required id="user-type" onchange="toggleUserTypeFields()">
-      <option value="" disabled selected>Select User Type</option>
-      <option value="TertiaryFaculty">Tertiary Faculty</option>
-      <option value="SystemUser">System User</option>
-    </select>
+      <label for="user-type"><span style="color: red;">*</span> User Type:</label>
+      <select required id="user-type" onchange="toggleUserTypeFields()">
+        <option value="" disabled selected>Select User Type</option>
+        <option value="TertiaryFaculty">Tertiary Faculty</option>
+        <option value="SystemUser">System User</option>
+      </select>
 
-    <label for="employID"><span style="color: red;">*</span> Employee ID</label>
-    <input required type="text" id="employID" placeholder="Enter employee ID" maxlength="8" minlength="8">
+      <label for="employID"><span style="color: red;">*</span> Employee ID</label>
+      <input required type="text" id="employID" placeholder="Enter employee ID" maxlength="8" minlength="8">
 
-    <label for="teacherEmail"><span style="color: red;">*</span> Email Address</label>
-    <input required type="email" id="teacherEmail" placeholder="Enter email address">
+      <label for="teacherEmail"><span style="color: red;">*</span> Email Address</label>
+      <input required type="email" id="teacherEmail" placeholder="Enter email address">
 
-    <label for="teacherFirst"><span style="color: red;">*</span> First Name</label>
-    <input required type="text" id="teacherFirst" placeholder="Enter first name">
+      <label for="teacherFirst"><span style="color: red;">*</span> First Name</label>
+      <input required type="text" id="teacherFirst" placeholder="Enter first name">
 
-    <label for="teacherMiddle">Middle Name (Optional)</label>
-    <input type="text" id="teacherMiddle" placeholder="Enter middle name">
+      <label for="teacherMiddle">Middle Name (Optional)</label>
+      <input type="text" id="teacherMiddle" placeholder="Enter middle name">
 
-    <label for="teacherLast"><span style="color: red;">*</span> Last Name</label>
-    <input required type="text" id="teacherLast" placeholder="Enter last name">
+      <label for="teacherLast"><span style="color: red;">*</span> Last Name</label>
+      <input required type="text" id="teacherLast" placeholder="Enter last name">
 
-    <label for="teacherContact"><span style="color: red;">*</span> Contact Number</label>
-    <input required type="tel" id="teacherContact" placeholder="Enter contact number" maxlength="11" pattern="[0-9]{11}"
-      title="Please enter exactly 11 digits">
-    <div id="facultyFields" style="display: none;">
-      <label for="teacherDept"><span style="color: red;">*</span> Department</label>
-      <select required id="teacherDept">
-        <option value="" disabled selected>Select Department</option>
+      <label for="teacherContact"><span style="color: red;">*</span> Contact Number</label>
+      <input required type="tel" id="teacherContact" placeholder="Enter contact number" maxlength="11"
+        pattern="[0-9]{11}" title="Please enter exactly 11 digits">
+      <div id="facultyFields" style="display: none;">
+        <label for="teacherDept"><span style="color: red;">*</span> Department</label>
+        <select required id="teacherDept">
+          <option value="" disabled selected>Select Department</option>
+          <option value="Information Technology">Information Technology</option>
+          <option value="Criminology">Criminology</option>
+          <option value="Business Administration">Business Administration</option>
+          <option value="Tourism Management">Tourism Management</option>
+          <option value="Basic Education">Basic Education</option>
+        </select>
+        <label for="employmentStatus"><span style="color: red;">*</span> Employment Status</label>
+        <select id="employmentStatus">
+          <option value="" disabled selected>Select Status</option>
+          <option value="Regular">Regular</option>
+          <option value="Full-time">Full-time</option>
+          <option value="Part-time">Part-time</option>
+        </select>
+
+      </div>
+      <div id="systemUserFields" style="display: none;">
+        <label for="userRole">User Role</label>
+        <select id="userRole">
+          <option value="staff/checker">Staff/Checker</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="cancel-btn" onclick="closeModal()">Cancel</button>
+        <button class="save-btn" id="addUserBtn" onclick="saveTeacher()">Add User</button>
+      </div>
+      <div style="margin-bottom: 20px;">
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit User Modal -->
+  <div class="modal" id="editTeacherModal">
+    <div class="modal-content">
+      <h3>Edit User Information</h3>
+
+      <input type="hidden" id="editTeacherId">
+      <input type="hidden" id="editUserType">
+
+      <label for="editTeacherFirst">First Name <span style="color: red;">*</span></label>
+      <input required type="text" id="editTeacherFirst" placeholder="Enter first name">
+
+      <label for="editTeacherMiddle">Middle Name (Optional)</label>
+      <input type="text" id="editTeacherMiddle" placeholder="Enter middle name">
+
+      <label for="editTeacherLast">Last Name <span style="color: red;">*</span></label>
+      <input required type="text" id="editTeacherLast" placeholder="Enter last name">
+
+      <label for="editTeacherEmail">Email Address<span style="color: red;">*</span></label>
+      <input required type="email" id="editTeacherEmail" placeholder="Enter email address" readonly
+        style="background-color: #f0f0f0; cursor: not-allowed;">
+
+      <label for="editTeacherContact">Contact Number <span style="color: red;">*</span></label>
+      <input required type="tel" id="editTeacherContact" placeholder="Enter contact number" minlength="11"
+        maxlength="11" pattern="[0-9]{11}" title="Please enter exactly 11 digits">
+
+      <label for="editTeacherDept">Department <span style="color: red;">*</span></label>
+      <select required id="editTeacherDept">
+        <option value="" disabled>Select Department</option>
         <option value="Information Technology">Information Technology</option>
         <option value="Criminology">Criminology</option>
         <option value="Business Administration">Business Administration</option>
-        <option value="Tourism Management">Tourism Management</option>
+        <option value="Tourism">Tourism</option>
         <option value="Basic Education">Basic Education</option>
       </select>
-      <label for="employmentStatus"><span style="color: red;">*</span> Employment Status</label>
-      <select id="employmentStatus">
-        <option value="" disabled selected>Select Status</option>
-        <option value="Regular">Regular</option>
-        <option value="Full-time">Full-time</option>
-        <option value="Part-time">Part-time</option>
-      </select>
 
-    </div>
-    <div id="systemUserFields" style="display: none;">
-      <label for="userRole">User Role</label>
-      <select id="userRole">
-        <option value="staff/checker">Staff/Checker</option>
-        <option value="admin">Admin</option>
-      </select>
-    </div>
-    <div class="modal-actions">
-      <button class="cancel-btn" onclick="closeModal()">Cancel</button>
-      <button class="save-btn" id="addUserBtn" onclick="saveTeacher()">Add User</button>
-    </div>
-    <div style="margin-bottom: 20px;">
+      <!-- Fields for Tertiary Faculty Only -->
+      <div id="editFacultyFields" style="display: none;">
+        <label for="editEmploymentStatus">Employment Status <span style="color: red;">*</span></label>
+        <select id="editEmploymentStatus">
+          <option value="" disabled>Select Status</option>
+          <option value="Regular">Regular</option>
+          <option value="Full-time">Full-time</option>
+          <option value="Part-time">Part-time</option>
+        </select>
 
+        <label for="editEmployID">Employee ID <span style="color: red;">*</span></label>
+        <input type="text" id="editEmployID" placeholder="Enter employee ID" maxlength="8" minlength="8">
+      </div>
+
+      <div class="modal-actions">
+        <button class="cancel-btn" onclick="closeEditModal()">Cancel</button>
+        <button class="save-btn" onclick="updateTeacher()">Update User</button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Edit User Modal -->
-<div class="modal" id="editTeacherModal">
-  <div class="modal-content">
-    <h3>Edit User Information</h3>
+  <script src="{% static 'js/accounts.js' %}"></script>
 
-    <input type="hidden" id="editTeacherId">
-    <input type="hidden" id="editUserType">
+  {% endblock %}
+  {%block script_content%}
+  <script>
+    async function handleFileSelect(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const fileSelectedSpan = document.getElementById('fileSelected');
+      fileSelectedSpan.textContent = file.name;
+      fileSelectedSpan.classList.add('show');
 
-    <label for="editTeacherFirst">First Name <span style="color: red;">*</span></label>
-    <input required type="text" id="editTeacherFirst" placeholder="Enter first name">
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
 
-    <label for="editTeacherMiddle">Middle Name (Optional)</label>
-    <input type="text" id="editTeacherMiddle" placeholder="Enter middle name">
-
-    <label for="editTeacherLast">Last Name <span style="color: red;">*</span></label>
-    <input required type="text" id="editTeacherLast" placeholder="Enter last name">
-
-    <label for="editTeacherEmail">Email Address<span style="color: red;">*</span></label>
-    <input required type="email" id="editTeacherEmail" placeholder="Enter email address" readonly
-      style="background-color: #f0f0f0; cursor: not-allowed;">
-
-    <label for="editTeacherContact">Contact Number <span style="color: red;">*</span></label>
-    <input required type="tel" id="editTeacherContact" placeholder="Enter contact number" minlength="11" maxlength="11"
-      pattern="[0-9]{11}" title="Please enter exactly 11 digits">
-
-    <label for="editTeacherDept">Department <span style="color: red;">*</span></label>
-    <select required id="editTeacherDept">
-      <option value="" disabled>Select Department</option>
-      <option value="Information Technology">Information Technology</option>
-      <option value="Criminology">Criminology</option>
-      <option value="Business Administration">Business Administration</option>
-      <option value="Tourism">Tourism</option>
-      <option value="Basic Education">Basic Education</option>
-    </select>
-
-    <!-- Fields for Tertiary Faculty Only -->
-    <div id="editFacultyFields" style="display: none;">
-      <label for="editEmploymentStatus">Employment Status <span style="color: red;">*</span></label>
-      <select id="editEmploymentStatus">
-        <option value="" disabled>Select Status</option>
-        <option value="Regular">Regular</option>
-        <option value="Full-time">Full-time</option>
-        <option value="Part-time">Part-time</option>
-      </select>
-
-      <label for="editEmployID">Employee ID <span style="color: red;">*</span></label>
-      <input type="text" id="editEmployID" placeholder="Enter employee ID"  maxlength="8" minlength="8">
-    </div>
-
-    <div class="modal-actions">
-      <button class="cancel-btn" onclick="closeEditModal()">Cancel</button>
-      <button class="save-btn" onclick="updateTeacher()">Update User</button>
-    </div>
-  </div>
-</div>
-
-<script src="{% static 'js/accounts.js' %}"></script>
-
-{% endblock %}
-{%block script_content%}
-<script>
-  async function handleFileSelect(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const fileSelectedSpan = document.getElementById('fileSelected');
-    fileSelectedSpan.textContent = file.name;
-    fileSelectedSpan.classList.add('show');
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
-
-    try {
+      try {
 
         const response = await fetch('/accounts/import-users-excel/', {
-            method: 'POST',
-            body: formData,
+          method: 'POST',
+          body: formData,
         });
 
         const data = await response.json();
 
         if (data.success) {
-            showImportResults(`
+          showImportResults(`
                 <p style="color: #28a745; margin-bottom: 10px;">
                     <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">check_circle</span>
                     ${data.message}
@@ -328,39 +332,39 @@
                 <small>${data.imported_count} users created${data.skipped_count > 0 ? `, ${data.skipped_count} skipped` : ''}</small>
             `);
 
-            setTimeout(() => {
-                location.reload();
-            }, 2000);
+          setTimeout(() => {
+            location.reload();
+          }, 2000);
         } else {
-            showImportResults(`
+          showImportResults(`
                 <p style="color: #dc3545;">
                     <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">error</span>
                     ${data.error}
                 </p>
             `);
         }
-    } catch (error) {
+      } catch (error) {
         showImportResults(`
             <p style="color: #dc3545;">
                 <span class="material-symbols-outlined" style="font-size: 16px; vertical-align: middle;">error</span>
                 Import failed: ${error.message}
             </p>
         `);
+      }
+      event.target.value = '';
+      fileSelectedSpan.classList.remove('show');
     }
-    event.target.value = '';
-    fileSelectedSpan.classList.remove('show');
-  }
 
-  function showImportResults(html) {
+    function showImportResults(html) {
       document.getElementById('importResultsContent').innerHTML = html;
       document.getElementById('importResultsModal').style.display = 'block';
-  }
+    }
 
-  function closeImportResults() {
+    function closeImportResults() {
       document.getElementById('importResultsModal').style.display = 'none';
-  }
+    }
 
-  document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function () {
       initMobileAccordion();
       let resizeTimer;
       window.addEventListener("resize", function () {
@@ -508,5 +512,7 @@
         });
       });
     }
-</script>
-{%endblock%}
+
+
+  </script>
+  {%endblock%}

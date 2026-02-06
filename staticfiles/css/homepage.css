@@ -1,3 +1,8 @@
+@font-face {
+  font-family: pcu-font;
+  src: url('/static/css/font/Canterbury.ttf');
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -7,7 +12,27 @@
 body,
 html {
   height: 100%;
+  margin: 0;
+  padding: 0;
   font-family: Kameron, serif;
+}
+
+
+body {
+  position: relative;
+  background: url("../images/pcu-bg.jpg") center center / cover no-repeat fixed;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.7);
+  /* White overlay to lighten the bg */
+  z-index: -1;
 }
 
 ul {
@@ -23,16 +48,22 @@ ul li {
 }
 
 ul li a {
+  font-family: 'Courier New', Courier, monospace;
   display: block;
-  color: white;
+  color: black;
   text-align: center;
   padding: 14px 16px;
   text-decoration: none;
+  font-size: 20px;
+  font-weight: 600;
+  transition: all ease 0.5s;
 }
 
 ul li a:hover {
-  color: #2eee74;
+  color: #312eee;
   border-radius: 10%;
+  font-size: 25px;
+  text-decoration: underline;
 }
 
 .dashboard-btn {
@@ -87,14 +118,15 @@ ul li a:hover {
 }
 
 .logo-title h2 {
-  font-size: 1.5rem;
-  font-weight: bold;
+  font-size: 2rem;
+  font-weight: 300;
+  font-family: pcu-font;
 }
 
 .logout-btn {
   background: transparent;
-  color: white;
-  border: 2px solid white;
+  color: #012763;
+  border: 2px solid #012763;
   padding: 8px 16px;
   font-weight: bold;
   border-radius: 6px;
@@ -103,21 +135,22 @@ ul li a:hover {
 }
 
 .logout-btn:hover {
-  background: white;
-  color: #2a1a9b;
+  background: #012763;
+  color: white;
+  font-weight: bold;
 }
 
 .header-content {
   position: relative;
   height: 100%;
   width: 100%;
-  background: url("../images/cscqc-background.jpg") center center / cover
-    no-repeat;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   text-align: left;
   padding-left: 100px;
+  opacity: 0.9;
 }
 
 .overlay {
@@ -133,7 +166,7 @@ ul li a:hover {
 .text-content {
   position: relative;
   z-index: 2;
-  color: white;
+  color: black;
   max-width: 800px;
   padding: 20px;
 }

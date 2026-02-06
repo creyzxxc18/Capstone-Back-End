@@ -146,43 +146,64 @@ function toggleAccess(icon, userId, currentStatus, userName) {
   }
 }
 function filterTable() {
-  const searchInput = document.getElementById('searchInput');
-  const statusFilter = document.getElementById('statusFilter');
-  const searchValue = searchInput.value.toLowerCase();
-  const statusValue = statusFilter.value;
-  const tbody = document.querySelector('#accessTable tbody');
-  const rows = tbody.getElementsByTagName('tr');
+  const statusFilter = document.getElementById('statusFilter').value;
+  const searchInput = document.getElementById('searchInput').value.toLowerCase();
+  const table = document.getElementById('accessTable');
+  const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+  const noResultsRow = document.getElementById('noResultsRow');
 
+  let visibleCount = 0;
+
+  // Loop through all table rows (except the "no results" row)
   for (let i = 0; i < rows.length; i++) {
-    const row = rows[i];
-
-    if (row.querySelector('td[colspan]')) {
+    // Skip the "no results" row
+    if (rows[i].id === 'noResultsRow') {
       continue;
     }
 
-    const employID = row.querySelector('.employID');
-    const nameCell = row.querySelector('.user_name');
-    const userDepartment = row.querySelector('.user-department');
-    const accessIcon = row.querySelector('.active-icon, .archived-icon');
+    const employID = rows[i].getElementsByClassName('employID')[0];
+    const userName = rows[i].getElementsByClassName('user_name')[0];
+    const department = rows[i].getElementsByClassName('user-department')[0];
 
-    const name = nameCell ? (nameCell.textContent || nameCell.innerText).trim().toLowerCase() : "";
-    const id = employID ? (employID.textContent || employID.innerText).trim().toLowerCase() : "";
-    const department = userDepartment ? (userDepartment.textContent || userDepartment.innerText).trim().toLowerCase() : "";
-    const isActive = accessIcon ? accessIcon.classList.contains('active-icon') : false;
-    const searchMatch = name.indexOf(searchValue) > -1 ||
-      id.indexOf(searchValue) > -1 ||
-      department.indexOf(searchValue) > -1;
-    let statusMatch = true;
-    if (statusValue === 'active') {
-      statusMatch = isActive;
-    } else if (statusValue === 'archived') {
-      statusMatch = !isActive;
+    if (employID && userName && department) {
+      const employIDText = employID.textContent || employID.innerText;
+      const userNameText = userName.textContent || userName.innerText;
+      const departmentText = department.textContent || department.innerText;
+
+      // Check if row matches search
+      const matchesSearch =
+        employIDText.toLowerCase().indexOf(searchInput) > -1 ||
+        userNameText.toLowerCase().indexOf(searchInput) > -1 ||
+        departmentText.toLowerCase().indexOf(searchInput) > -1;
+
+      // Check if row matches status filter
+      let matchesStatus = true;
+      if (statusFilter !== 'all') {
+        const activeIcon = rows[i].querySelector('.active-icon');
+        const archivedIcon = rows[i].querySelector('.archived-icon');
+
+        if (statusFilter === 'active') {
+          matchesStatus = activeIcon !== null;
+        } else if (statusFilter === 'archived') {
+          matchesStatus = archivedIcon !== null;
+        }
+      }
+
+      // Show or hide row based on filters
+      if (matchesSearch && matchesStatus) {
+        rows[i].style.display = '';
+        visibleCount++;
+      } else {
+        rows[i].style.display = 'none';
+      }
     }
-    if (searchMatch && statusMatch) {
-      row.style.display = '';
-    } else {
-      row.style.display = 'none';
-    }
+  }
+
+  // Show or hide "No user found" message
+  if (visibleCount === 0) {
+    noResultsRow.style.display = '';
+  } else {
+    noResultsRow.style.display = 'none';
   }
 }
 function formatDateToReadable(dateStr) {

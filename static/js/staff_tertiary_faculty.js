@@ -107,7 +107,7 @@ document.addEventListener('click', function (e) {
 
 function toggleUserTypeFields() {
     const facultyFields = document.getElementById('facultyFields');
-
+    
     facultyFields.style.display = 'block';
     document.getElementById('employmentStatus').required = true;
     document.getElementById('employID').required = true;
@@ -139,7 +139,7 @@ function openModal() {
 
 function closeModal() {
     modal.style.display = "none";
-
+    
     document.getElementById('teacherFirst').value = '';
     document.getElementById('teacherMiddle').value = '';
     document.getElementById('teacherLast').value = '';
@@ -203,7 +203,7 @@ function filterByDepartment() {
             continue;
         }
 
-        const departmentCell = row.cells[2];
+        const departmentCell = row.cells[2]; 
 
         if (departmentCell) {
             const department = departmentCell.textContent || departmentCell.innerText;
@@ -236,7 +236,7 @@ function getCookie(name) {
 }
 
 function resetPassword(professorId, email, userType) {
-    const passwordType = 'cscqcApp123';
+    const passwordType = 'cscqcApp123'; 
     if (!confirm(`Reset password of ${email} to ${passwordType}?`)) {
         return;
     }
@@ -281,13 +281,13 @@ function resetPassword(professorId, email, userType) {
 }
 
 async function saveTeacher() {
-
+    
     if (isSubmittingUser) return;
 
     const addBtn = document.getElementById("addUserBtn");
     isSubmittingUser = true;
 
-
+    
     addBtn.disabled = true;
     addBtn.style.pointerEvents = "none";
     addBtn.innerHTML = `
@@ -305,10 +305,10 @@ async function saveTeacher() {
         const employID = document.getElementById("employID").value.trim();
         const employmentStatus = document.getElementById("employmentStatus").value;
 
-
+        
         const userType = "TertiaryFaculty";
 
-
+       
 
         if (!employmentStatus) {
             alert("Employment Status is required");
@@ -328,14 +328,14 @@ async function saveTeacher() {
             return;
         }
 
-
+        
         if (document.querySelector(".input-error")) {
             alert("Please fix the highlighted errors before submitting.");
             resetAddUserButton();
             return;
         }
 
-
+       
 
         const requestBody = {
             first_name: firstName,
@@ -350,7 +350,7 @@ async function saveTeacher() {
             password: "cscqcApp123"
         };
 
-
+       
 
         const response = await fetch("/accounts/register/", {
             method: "POST",
@@ -364,12 +364,12 @@ async function saveTeacher() {
         const data = await response.json();
 
         if (data.success) {
-
+            
             addBtn.innerHTML = "✅ Created";
 
             alert("Tertiary Faculty added successfully!");
 
-
+            
             document.getElementById("teacherFirst").value = "";
             document.getElementById("teacherMiddle").value = "";
             document.getElementById("teacherLast").value = "";
@@ -379,7 +379,7 @@ async function saveTeacher() {
             document.getElementById("employmentStatus").value = "";
             document.getElementById("employID").value = "";
 
-
+            
             setTimeout(() => {
                 closeModal();
                 location.reload();
@@ -404,11 +404,11 @@ function editProfessor(id, firstName, midName, lastName, email, phoneNumber, dep
         department, employmentStatus, employID, userType
     });
 
-
+    
     document.getElementById('editTeacherId').value = id || '';
     document.getElementById('editUserType').value = userType || 'TertiaryFaculty';
 
-
+    
     document.getElementById('editTeacherFirst').value = firstName || '';
     document.getElementById('editTeacherMiddle').value = midName || '';
     document.getElementById('editTeacherLast').value = lastName || '';
@@ -416,7 +416,7 @@ function editProfessor(id, firstName, midName, lastName, email, phoneNumber, dep
     document.getElementById('editTeacherContact').value = phoneNumber || '';
     document.getElementById('editTeacherDept').value = department || '';
 
-
+    
     const editFacultyFields = document.getElementById('editFacultyFields');
     editFacultyFields.style.display = 'block';
     document.getElementById('editEmploymentStatus').value = employmentStatus || 'Full-time';
@@ -493,7 +493,7 @@ async function updateTeacher() {
     const employID = document.getElementById('editEmployID').value.trim();
     const editEmpInput = document.getElementById("editEmployID");
 
-
+    
     if (editEmpInput && editEmpInput.classList.contains("input-error")) {
         alert("Employee ID already exists. Please choose a different ID.");
         return;
@@ -514,7 +514,7 @@ async function updateTeacher() {
         return;
     }
 
-
+    
     try {
         const checkResponse = await fetch(`/accounts/check-employid/?employID=${encodeURIComponent(employID)}&excludeUid=${encodeURIComponent(professorId)}`, {
             method: 'GET',
@@ -818,7 +818,7 @@ if (emailInput) {
 
         if (!email) return;
 
-
+        
         if (!email.includes("@")) {
             showEmailError("Email must contain '@'");
             emailInput.classList.add("input-error");

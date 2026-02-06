@@ -40,7 +40,7 @@ async function enrichClassesWithTeacherNames(classes) {
     console.log(`📋 Found ${teacherIds.length} unique teachers:`, teacherIds);
 
     const teacherMap = {};
-    const activeTeachers = new Set();
+    const activeTeachers = new Set(); 
 
     for (const teacherId of teacherIds) {
         try {
@@ -49,8 +49,8 @@ async function enrichClassesWithTeacherNames(classes) {
             if (data.success && data.user) {
                 const user = data.user;
 
-
-                const isActive = user.isActive !== false;
+                
+                const isActive = user.isActive !== false; 
 
                 if (isActive) {
                     const firstName = user.firstName || '';
@@ -69,7 +69,7 @@ async function enrichClassesWithTeacherNames(classes) {
         }
     }
 
-
+    
     const activeClasses = classes.filter(cls => activeTeachers.has(cls.teacherUid));
 
     console.log(`📊 Filtered: ${classes.length} total classes → ${activeClasses.length} active classes`);
@@ -99,7 +99,7 @@ async function loadCalendarSchedules() {
     const todayDayName = today.toLocaleDateString('en-US', { weekday: 'long' });
     const todayYear = today.getFullYear();
     const todayMonth = today.getMonth() + 1;
-
+    
     if (todayYear === currentYear && todayMonth === currentMonth) {
         const todayCell = document.querySelector(`td[data-date="${todayStr}"]`);
         if (todayCell) {
@@ -107,7 +107,7 @@ async function loadCalendarSchedules() {
             todayCell.style.fontWeight = 'bold';
             todayCell.style.backgroundColor = '#9db5ebff';
         }
-
+        
         showDaySchedule(todayDayName, todayStr);
     }
 }
@@ -383,12 +383,12 @@ async function displayFilteredResults(teachers) {
         scheduleList.innerHTML = `<p style="text-align:center;color:#94a3b8;padding:20px;">No results found</p>`;
         if (resultsCount) resultsCount.textContent = 'No results';
 
-
+        
         if (selectedDate) {
             addDayStatusButtons(scheduleList);
         }
 
-        stopStatusAutoRefresh();
+        stopStatusAutoRefresh(); 
         return;
     }
 
@@ -397,18 +397,18 @@ async function displayFilteredResults(teachers) {
         resultsCount.textContent = `Showing ${teachers.length} teacher${teachers.length > 1 ? 's' : ''} with ${totalClasses} class${totalClasses > 1 ? 'es' : ''}`;
     }
 
-
+    
     for (const teacher of teachers) {
         const card = await createTeacherCard(teacher);
         scheduleList.appendChild(card);
     }
 
-
+    
     if (selectedDate) {
         addDayStatusButtons(scheduleList);
     }
 
-
+    
     startStatusAutoRefresh();
 }
 
@@ -580,7 +580,7 @@ function parseTimeToMinutes(timeStr) {
     if (!timeStr) return null;
 
     try {
-
+        
         const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
         if (!match) return null;
 
@@ -588,7 +588,7 @@ function parseTimeToMinutes(timeStr) {
         const minutes = parseInt(match[2]);
         const period = match[3].toUpperCase();
 
-
+        
         if (period === 'PM' && hours !== 12) {
             hours += 12;
         } else if (period === 'AM' && hours === 12) {
@@ -616,16 +616,16 @@ if (!document.getElementById('status-indicator-styles')) {
 }
 
 function startStatusAutoRefresh() {
-
+    
     if (statusRefreshInterval) {
         clearInterval(statusRefreshInterval);
     }
 
-
+    
     statusRefreshInterval = setInterval(() => {
         console.log('🔄 Auto-refreshing status indicators...');
         refreshAllStatusIndicators();
-    }, 30000);
+    }, 30000); 
 
     console.log('✅ Status auto-refresh started (every 30 seconds)');
 }
@@ -643,18 +643,18 @@ async function refreshAllStatusIndicators() {
         return;
     }
 
-
+    
     for (const teacher of currentProfessors) {
         await updateTeacherCardStatus(teacher.teacherUid, teacher.classes);
     }
 }
 
 async function updateTeacherCardStatus(teacherUid, classes) {
-
+    
     const cards = document.querySelectorAll('.professor-schedule-card');
 
     for (const card of cards) {
-
+        
         if (card.dataset.teacherUid !== teacherUid) {
             continue;
         }
@@ -664,10 +664,10 @@ async function updateTeacherCardStatus(teacherUid, classes) {
 
         if (!statusIndicator || !statusText) continue;
 
-
+        
         const status = await getTeacherAttendanceStatus(teacherUid, classes, selectedDate);
 
-
+        
         statusIndicator.style.background = status.color;
         statusIndicator.style.boxShadow = `0 0 8px ${status.color}`;
         statusIndicator.title = status.message;
@@ -678,7 +678,7 @@ async function updateTeacherCardStatus(teacherUid, classes) {
             statusIndicator.style.animation = 'none';
         }
 
-
+        
         statusText.textContent = status.message;
 
         console.log(`✅ Updated status for ${teacherUid}: ${status.message}`);
@@ -700,7 +700,7 @@ async function showTeacherScheduleModal(teacher) {
         document.body.appendChild(modal);
     }
 
-
+    
     let hasLeaveStatus = false;
     if (teacher.classes && teacher.classes.length > 0) {
         for (const cls of teacher.classes) {
@@ -812,7 +812,7 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
     console.log('   Teacher UID:', teacherUid);
     console.log('   Selected Date:', selectedDate);
 
-
+    
     const NOW = new Date();
     const NOW_TIME_MINUTES = NOW.getHours() * 60 + NOW.getMinutes();
     console.log('   🕐 Current Time:', NOW.toLocaleTimeString(), `(${NOW_TIME_MINUTES} minutes)`);
@@ -833,7 +833,7 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
 
     const attendance = await fetchAttendanceForClass(cls.id, teacherUid, selectedDate);
 
-
+    
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const selectedDateObj = new Date(selectedDate + 'T00:00:00');
@@ -846,7 +846,7 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
     const hasTimeOut = attendance?.timeOutImageUrl;
     const bothComplete = hasTimeIn && hasTimeOut;
 
-
+    
     let classHasPassed = false;
     let classEndTimeMinutes = null;
 
@@ -1269,10 +1269,10 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
                 font-weight: 600;
                 background: ${lateReasons ? '#fef3c7' :
             isAbsent ? (isCompensated ? '#d1fae5' : '#fee2e2') :
-                isIncomplete ? '#fef3c7' :
-                    validationStatus === 'approved' ? '#d1fae5' :
-                        validationStatus === 'declined' ? '#fee2e2' :
-                            isPending ? '#fef3c7' : '#d1fae5'
+            isIncomplete ? '#fef3c7' :
+                validationStatus === 'approved' ? '#d1fae5' :
+                    validationStatus === 'declined' ? '#fee2e2' :
+                        isPending ? '#fef3c7' : '#d1fae5'
         };
                 color: ${lateReasons ? '#92400e' :
             isAbsent ? (isCompensated ? '#065f46' : '#991b1b') :
@@ -1283,9 +1283,9 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
             ">
                 ${lateReasons ? lateReasons.toUpperCase() :
             isAbsent ? (isCompensated ? 'ABSENT (COMPENSATED)' : 'ABSENT') :
-                isIncomplete ? 'INCOMPLETE - WAITING FOR TIME OUT' :
-                    validationStatus ? validationStatus.toUpperCase() :
-                        isPending ? 'PENDING' : 'PRESENT'
+            isIncomplete ? 'INCOMPLETE - WAITING FOR TIME OUT' :
+                validationStatus ? validationStatus.toUpperCase() :
+                    isPending ? 'PENDING' : 'PRESENT'
         }
             </span>
         </div>
@@ -1297,7 +1297,7 @@ async function createModalClassCard(cls, teacherUid, selectedDate) {
 function showCompensationInput(classId, attendanceId, teacherUid, date) {
     console.log('🎯 Showing compensation input for class:', classId);
 
-
+    
     const buttonDiv = document.getElementById(`compensationButton_${classId}`);
     const inputDiv = document.getElementById(`compensationInput_${classId}`);
 
@@ -1305,7 +1305,7 @@ function showCompensationInput(classId, attendanceId, teacherUid, date) {
         buttonDiv.style.display = 'none';
         inputDiv.style.display = 'block';
 
-
+        
         const textarea = document.getElementById(`compensationNote_${classId}`);
         if (textarea) {
             textarea.focus();
@@ -1316,7 +1316,7 @@ function showCompensationInput(classId, attendanceId, teacherUid, date) {
 function cancelCompensationInput(classId) {
     console.log('❌ Canceling compensation input for class:', classId);
 
-
+    
     const buttonDiv = document.getElementById(`compensationButton_${classId}`);
     const inputDiv = document.getElementById(`compensationInput_${classId}`);
 
@@ -1324,7 +1324,7 @@ function cancelCompensationInput(classId) {
         buttonDiv.style.display = 'block';
         inputDiv.style.display = 'none';
 
-
+        
         const textarea = document.getElementById(`compensationNote_${classId}`);
         if (textarea) {
             textarea.value = '';
@@ -1342,7 +1342,7 @@ async function submitCompensation(classId, attendanceId, teacherUid, date) {
     console.log('📝 Date:', date);
 
     try {
-
+        
         if (!attendanceId) {
             console.log('⚠️ No attendance ID, creating new record...');
 
@@ -1375,7 +1375,7 @@ async function submitCompensation(classId, attendanceId, teacherUid, date) {
 
         console.log('📤 Sending compensation request...');
 
-
+        
         const response = await fetch('/mark_compensated/', {
             method: 'POST',
             headers: {
@@ -1403,14 +1403,14 @@ async function submitCompensation(classId, attendanceId, teacherUid, date) {
         if (data.success) {
             alert('✅ Marked as compensated');
 
-
+            
             const teacher = currentProfessors.find(t => t.teacherUid === teacherUid);
 
-
+            
             closeTeacherScheduleModal();
 
             if (teacher) {
-
+                
                 setTimeout(() => {
                     showTeacherScheduleModal(teacher);
                 }, 100);
@@ -1456,11 +1456,11 @@ async function removeCompensation(attendanceId) {
         if (data.success) {
             alert('✅ Compensation removed');
 
-
+            
             closeTeacherScheduleModal();
 
             if (currentModalTeacher) {
-
+                
                 setTimeout(() => {
                     showTeacherScheduleModal(currentModalTeacher);
                 }, 100);
@@ -1498,7 +1498,7 @@ async function clearAllClassesLeave(teacherUid) {
             const count = data.clearedCount || 0;
             alert(`✅ ${count} class(es) leave status cleared`);
 
-
+            
             closeTeacherScheduleModal();
             const teacher = currentProfessors.find(t => t.teacherUid === teacherUid);
             if (teacher) {
@@ -1547,10 +1547,10 @@ async function markAllClassesLeave(teacherUid, date) {
             const count = data.updatedCount || 0;
             alert(`✅ ${count} class(es) marked as ${leaveReason}`);
 
-
+            
             selectElement.value = '';
 
-
+            
             applyFilters();
         } else {
             alert('❌ Error: ' + data.error);
@@ -1594,7 +1594,7 @@ async function markAllClassesLeaveFromModal(teacherUid) {
             const count = data.updatedCount || 0;
             alert(`✅ ${count} class(es) marked as ${leaveReason}`);
 
-
+            
             closeTeacherScheduleModal();
             const teacher = currentProfessors.find(t => t.teacherUid === teacherUid);
             if (teacher) {
@@ -1623,7 +1623,7 @@ async function markTeacherLeave(attendanceId, classId, teacherUid, date) {
     }
 
     try {
-
+        
         if (!attendanceId) {
             const createResponse = await fetch('/create_attendance/', {
                 method: 'POST',
@@ -1649,7 +1649,7 @@ async function markTeacherLeave(attendanceId, classId, teacherUid, date) {
             }
         }
 
-
+        
         const response = await fetch('/mark_teacher_leave/', {
             method: 'POST',
             headers: {
@@ -1667,7 +1667,7 @@ async function markTeacherLeave(attendanceId, classId, teacherUid, date) {
         if (data.success) {
             alert(`✅ Teacher marked as ${leaveReason}`);
 
-
+            
             closeTeacherScheduleModal();
             const teacherName = document.getElementById('modalTeacherName')?.textContent;
             const teacher = currentProfessors.find(t => t.teacher_name === teacherName);
@@ -1710,7 +1710,7 @@ async function clearTeacherLeave(attendanceId) {
         if (data.success) {
             alert('✅ Leave status cleared');
 
-
+            
             closeTeacherScheduleModal();
             const teacherName = document.getElementById('modalTeacherName')?.textContent;
             const teacher = currentProfessors.find(t => t.teacher_name === teacherName);
@@ -1774,7 +1774,7 @@ async function validateAttendance(attendanceId, isApproved) {
         if (!confirm(`Are you sure you want to ${isApproved ? 'approve' : 'decline'} this attendance?`)) {
             return;
         }
-
+        
         const response1 = await fetch('validate_attendance/', {
             method: 'POST',
             headers: {
@@ -1793,7 +1793,7 @@ async function validateAttendance(attendanceId, isApproved) {
         if (data.success) {
             alert(`✅ Attendance ${isApproved ? 'approved' : 'declined'} successfully!`);
 
-
+            
             closeTeacherScheduleModal();
             const teacherName = document.getElementById('modalTeacherName')?.textContent;
             const teacher = currentProfessors.find(t => t.teacher_name === teacherName);
@@ -1817,26 +1817,26 @@ async function validateAttendanceSingle(attendanceId, isApproved) {
 
         console.log('🔍 Validating attendance:', attendanceId, isApproved);
 
-
+        
         const clickedButton = event?.target;
         const buttonContainer = clickedButton?.parentElement;
         const allButtons = buttonContainer?.querySelectorAll('button') || [];
 
-
+        
         allButtons.forEach(btn => {
             btn.disabled = true;
             btn.style.opacity = '0.6';
             btn.style.cursor = 'not-allowed';
-            btn.style.pointerEvents = 'none';
+            btn.style.pointerEvents = 'none'; 
         });
 
-
+        
         if (clickedButton) {
             const originalText = clickedButton.textContent;
             clickedButton.textContent = isApproved ? '⏳ Approving...' : '⏳ Declining...';
         }
 
-
+        
         const response = await fetch('/validate_attendance/', {
             method: 'POST',
             headers: {
@@ -1853,10 +1853,10 @@ async function validateAttendanceSingle(attendanceId, isApproved) {
         console.log('✅ Validation response:', data);
 
         if (data.success) {
-
+            
             alert(`✅ Attendance ${isApproved ? 'approved' : 'declined'} successfully!`);
 
-
+            
             const modal = document.getElementById('teacherScheduleModal');
             const modalHeader = modal?.querySelector('.modal-header-content h2');
             const teacherName = modalHeader?.textContent?.trim();
@@ -1864,19 +1864,19 @@ async function validateAttendanceSingle(attendanceId, isApproved) {
             console.log('🔍 Looking for teacher:', teacherName);
             console.log('📋 Available teachers:', currentProfessors.map(t => t.teacher_name));
 
-
+            
             const teacher = currentProfessors.find(t => t.teacher_name === teacherName);
 
             if (teacher) {
                 console.log('✅ Found teacher, refreshing modal...');
 
-
+                
                 closeTeacherScheduleModal();
 
-
+                
                 await new Promise(resolve => setTimeout(resolve, 200));
 
-
+                
                 await showTeacherScheduleModal(teacher);
 
             } else {
@@ -1885,10 +1885,10 @@ async function validateAttendanceSingle(attendanceId, isApproved) {
             }
 
         } else {
-
+            
             alert('❌ Error: ' + (data.error || 'Unknown error'));
 
-
+            
             allButtons.forEach(btn => {
                 btn.disabled = false;
                 btn.style.opacity = '1';
@@ -1896,7 +1896,7 @@ async function validateAttendanceSingle(attendanceId, isApproved) {
                 btn.style.pointerEvents = 'auto';
             });
 
-
+            
             if (clickedButton) {
                 clickedButton.textContent = isApproved ? 'Approve' : 'Decline';
             }
@@ -1906,7 +1906,7 @@ async function validateAttendanceSingle(attendanceId, isApproved) {
         console.error('❌ Validation error:', err);
         alert('Error validating attendance: ' + err.message);
 
-
+        
         window.location.reload();
     }
 }
@@ -2096,7 +2096,7 @@ function applyStatusColors() {
         const dateStr = td.getAttribute('data-date');
         if (!dateStr) return;
 
-
+        
         td.style.backgroundColor = '';
         td.style.color = '';
         td.removeAttribute('data-status');
@@ -2107,7 +2107,7 @@ function applyStatusColors() {
         const isTodayDate = dateStr === todayStr;
         const isFutureDate = cellDate > todayDate;
 
-
+        
         if (monthStatuses[dateStr]) {
             const status = monthStatuses[dateStr].status;
 
@@ -2118,11 +2118,11 @@ function applyStatusColors() {
                 td.style.color = 'black';
                 td.style.fontWeight = 'bold';
 
-
+                
                 if (isTodayDate) {
                     td.style.border = '2px solid #059669';
                 }
-                return;
+                return; 
             }
             else if (status === 'suspended') {
                 console.log(`   ⚠️ ${dateStr} = SUSPENDED`);
@@ -2131,15 +2131,15 @@ function applyStatusColors() {
                 td.style.color = 'black';
                 td.style.fontWeight = 'bold';
 
-
+                
                 if (isTodayDate) {
                     td.style.border = '2px solid #dc2626';
                 }
-                return;
+                return; 
             }
         }
 
-
+        
         if (isPastDate) {
             console.log(`   📅 ${dateStr} = PAST`);
             td.style.backgroundColor = '#e2e8f0';
@@ -2169,7 +2169,7 @@ function addDayStatusButtons(container) {
         return;
     }
 
-
+    
     const existingButtons = document.getElementById('dayStatusButtons');
     if (existingButtons) {
         existingButtons.remove();
@@ -2188,11 +2188,11 @@ function addDayStatusButtons(container) {
         border-top: 2px solid #e2e8f0;
     `;
 
-
+    
     const currentStatus = monthStatuses[selectedDate];
 
     if (currentStatus) {
-
+        
         const clearBtn = document.createElement('button');
         clearBtn.textContent = `Clear ${currentStatus.status.toUpperCase()} Status`;
         clearBtn.style.cssText = `
@@ -2212,7 +2212,7 @@ function addDayStatusButtons(container) {
 
         buttonContainer.appendChild(clearBtn);
     } else {
-
+        
         const holidayBtn = document.createElement('button');
         holidayBtn.textContent = '🏖️ Mark as Holiday';
         holidayBtn.style.cssText = `
@@ -2251,7 +2251,7 @@ function addDayStatusButtons(container) {
         buttonContainer.appendChild(suspendBtn);
     }
 
-
+    
     try {
         container.appendChild(buttonContainer);
     } catch (error) {
@@ -2335,13 +2335,13 @@ async function clearDayStatus() {
         if (data.success) {
             alert('✅ Day status cleared');
 
-
+            
             delete monthStatuses[selectedDate];
 
-
+            
             applyStatusColors();
 
-
+            
             applyFilters();
         } else {
             alert('❌ Error: ' + data.error);
